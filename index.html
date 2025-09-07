@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Bot de sorteos CasaBella: registrate con tu cuenta, elegí tu número (000–999) y participá. Mirá los últimos ganadores y los premios vigentes." />
+  <meta name="author" content="Pablo Montenegro - https://pablomontenegro.com" />
+  <meta name="keywords" content="sorteo, ferretería, casabella, hogar, obra, premios, gratis, participar, números, whatsapp" />
+  <link rel="icon" href="logo.png" />
+  <title>Sorteo CasaBella</title>
+
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Precarga opcional de Firebase ESM -->
+  <script type="module">
+    import 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav">
+      <div class="brand">
+        <img src="logo.png" alt="CasaBella" class="brand-logo" />
+        <span class="brand-text">CasaBella | Hogar &amp; Obra</span>
+      </div>
+
+      <ul class="nav-links">
+        <li><a href="#participar">Participar</a></li>
+        <li><a href="#local">Nuestro Local</a></li>
+        <li><a href="#ganadores">Ganadores</a></li>
+      </ul>
+
+      <!-- Auth icon / sesión -->
+      <div class="auth-area">
+        <button id="btn-open-auth" class="icon-btn" aria-label="Iniciar sesión">
+          <!-- ícono de personita -->
+          <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z"/>
+          </svg>
+        </button>
+        <div id="session-chip" class="session-chip hidden">
+          <span id="chip-name"></span>
+          <span id="chip-role" class="badge"></span>
+          <button id="btn-logout" class="btn tiny danger">Salir</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Modal de autenticación -->
+  <dialog id="auth-modal">
+    <form method="dialog" class="modal">
+      <button class="modal-close" aria-label="Cerrar" id="auth-close">×</button>
+      <h3>Iniciá sesión</h3>
+      <p class="muted center">Para participar necesitamos validar tu cuenta.</p>
+      <div class="social-buttons">
+        <button type="button" id="login-google" class="btn social google">Continuar con Google</button>
+        <button type="button" id="login-facebook" class="btn social facebook">Continuar con Facebook</button>
+      </div>
+      <p class="muted xs center">Al continuar aceptás los Términos y la Política de Privacidad.</p>
+    </form>
+  </dialog>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <h1>Sorteo Ferretería CasaBella</h1>
+      <p>Elegí <strong>un número</strong> entre 000 y 999, participá del sorteo semanal/mensual, y mirá los <a href="#ganadores">últimos ganadores</a>.</p>
+    </section>
+
+    <!-- FORMULARIO -->
+    <section id="participar" class="card form-card">
+      <h2>Participar del sorteo</h2>
+      <form id="form-participar" novalidate>
+        <div class="form-grid">
+          <label>
+            Nombre y apellido
+            <input type="text" id="nombre" name="nombre" placeholder="Pablo Montenegro" required maxlength="80" />
+          </label>
+
+          <label>
+            Teléfono (WhatsApp)
+            <input type="tel" id="telefono" name="telefono" placeholder="+54 223 000 0000" required maxlength="30" />
+          </label>
+
+          <label class="full">
+            Número elegido (000–999)
+            <input type="number" id="numero" name="numero" min="0" max="999" required value="000" />
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn primary">Registrar</button>
+          <p class="muted">El número no puede estar repetido con otro participante. Un registro por usuario y por sorteo.</p>
+        </div>
+
+        <div id="msg" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <!-- PREMIOS (público) -->
+    <section id="premios-publico" class="card prizes-card">
+      <h2>Premios vigentes</h2>
+      <div id="premios-grid" class="prizes-grid">
+        <!-- Render dinámico -->
+      </div>
+    </section>
+
+    <!-- GALERÍA -->
+    <section id="local" class="gallery">
+      <h2>Nuestro local</h2>
+      <div class="media-grid">
+        <img src="assets/local-1.jpg" alt="Frente del local" />
+        <img src="assets/local-2.jpg" alt="Interior del local" />
+        <video controls preload="metadata">
+          <source src="assets/recorrido.mp4" type="video/mp4" />
+          Tu navegador no soporta video HTML5.
+        </video>
+      </div>
+    </section>
+
+    <!-- GANADORES -->
+    <section id="ganadores" class="card winners-card">
+      <h2>Últimos ganadores</h2>
+      <ul id="lista-ganadores" class="winners-list"></ul>
+    </section>
+
+    <!-- PANEL ADMIN (solo admin) -->
+    <section class="card admin-card" id="admin" hidden>
+      <h2>Panel (Admin)</h2>
+
+      <div class="admin-grid">
+        <label>
+          Cantidad de ganadores
+          <select id="cant-ganadores">
+            <option value="1">1 ganador</option>
+            <option value="2">2 ganadores</option>
+            <option value="3" selected>3 ganadores</option>
+          </select>
+        </label>
+
+        <label>
+          Modo de sorteo
+          <select id="modo-sorteo">
+            <option value="semanal">Semanal</option>
+            <option value="quincenal">15 días</option>
+            <option value="mensual">Mensual</option>
+          </select>
+        </label>
+
+        <button id="btn-sortear" class="btn accent">Realizar sorteo</button>
+        <button id="btn-reset" class="btn danger">Resetear sorteo</button>
+      </div>
+
+      <div class="admin-subgrid">
+        <div class="admin-col">
+          <h3>Gestión de premios (hasta 5)</h3>
+          <p class="muted xs">Usá URL de imagen por ahora. (Podemos integrar Firebase Storage cuando quieras).</p>
+          <div id="premios-admin">
+            <!-- 5 formularios simples -->
+            <div class="premio-form" data-idx="1">
+              <h4>Premio #1</h4>
+              <input type="text" class="p-titulo" placeholder="Título" />
+              <input type="text" class="p-img" placeholder="URL de imagen" />
+              <textarea class="p-desc" rows="2" placeholder="Descripción"></textarea>
+              <button class="btn tiny" data-save>Guardar premio #1</button>
+            </div>
+            <div class="premio-form" data-idx="2">
+              <h4>Premio #2</h4>
+              <input type="text" class="p-titulo" placeholder="Título" />
+              <input type="text" class="p-img" placeholder="URL de imagen" />
+              <textarea class="p-desc" rows="2" placeholder="Descripción"></textarea>
+              <button class="btn tiny" data-save>Guardar premio #2</button>
+            </div>
+            <div class="premio-form" data-idx="3">
+              <h4>Premio #3</h4>
+              <input type="text" class="p-titulo" placeholder="Título" />
+              <input type="text" class="p-img" placeholder="URL de imagen" />
+              <textarea class="p-desc" rows="2" placeholder="Descripción"></textarea>
+              <button class="btn tiny" data-save>Guardar premio #3</button>
+            </div>
+            <div class="premio-form" data-idx="4">
+              <h4>Premio #4</h4>
+              <input type="text" class="p-titulo" placeholder="Título" />
+              <input type="text" class="p-img" placeholder="URL de imagen" />
+              <textarea class="p-desc" rows="2" placeholder="Descripción"></textarea>
+              <button class="btn tiny" data-save>Guardar premio #4</button>
+            </div>
+            <div class="premio-form" data-idx="5">
+              <h4>Premio #5</h4>
+              <input type="text" class="p-titulo" placeholder="Título" />
+              <input type="text" class="p-img" placeholder="URL de imagen" />
+              <textarea class="p-desc" rows="2" placeholder="Descripción"></textarea>
+              <button class="btn tiny" data-save>Guardar premio #5</button>
+            </div>
+          </div>
+          <div id="admin-msg" class="admin-msg"></div>
+        </div>
+
+        <div class="admin-col">
+          <h3>Ganadores del sorteo actual</h3>
+          <ol id="ganadores-actual" class="ganadores-actual"></ol>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div>
+      <p>© <span id="year"></span> CasaBella — El mejor precio en 1º marcas.</p>
+    </div>
+    <div class="socials">
+      <a href="https://www.facebook.com/ferreteriacasabella" target="_blank" rel="noopener">Facebook</a>
+      <a href="https://www.instagram.com/ferreteriacasabella" target="_blank" rel="noopener">Instagram</a>
+    </div>
+  </footer>
+
+  <!-- Botón flotante WhatsApp -->
+  <a id="whatsapp-fab" class="fab" href="#" target="_blank" rel="noopener"
+     data-whatsapp="+5492233540898" aria-label="Chatear por WhatsApp">WhatsApp</a>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
