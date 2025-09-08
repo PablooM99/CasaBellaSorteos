@@ -4,10 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Bot de sorteos CasaBella: registrate con tu cuenta, elegí tu número (000–999) y participá. Mirá los últimos ganadores y los premios vigentes." />
-  <meta name="author" content="Pablo Montenegro - https://pablomontenegro.com" />
-  <meta name="keywords" content="sorteo, ferretería, casabella, hogar, obra, premios, gratis, participar, números, whatsapp" />
-  <link rel="icon" href="logo.png" />
   <title>Sorteo CasaBella</title>
+
   <link rel="stylesheet" href="styles.css" />
 
   <!-- Precarga opcional de Firebase ESM -->
@@ -15,17 +13,21 @@
     import 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
   </script>
 </head>
 <body>
   <header class="site-header">
     <nav class="nav">
       <div class="brand">
+        <button class="hamburger" id="nav-toggle" aria-label="Abrir menú" aria-controls="primary-nav" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
         <img src="logo.png" alt="CasaBella" class="brand-logo" />
         <span class="brand-text">CasaBella | Hogar &amp; Obra</span>
       </div>
 
-      <ul class="nav-links">
+      <ul class="nav-links" id="primary-nav">
         <li><a href="#participar">Participar</a></li>
         <li><a href="#local">Nuestro Local</a></li>
         <li><a href="#ganadores">Ganadores</a></li>
@@ -50,7 +52,7 @@
 
   <!-- Modal de autenticación -->
   <dialog id="auth-modal">
-    <form method="dialog" class="modal">
+    <form method="dialog" class="modal" role="document">
       <button class="modal-close" aria-label="Cerrar" id="auth-close">×</button>
       <h3>Iniciá sesión</h3>
       <p class="muted center">Para participar necesitamos validar tu cuenta.</p>
@@ -61,12 +63,39 @@
       <p class="muted xs center">Al continuar aceptás los Términos y la Política de Privacidad.</p>
     </form>
   </dialog>
+  <!-- Fallback backdrop para navegadores sin <dialog> -->
+  <div id="dialog-backdrop" class="dialog-backdrop"></div>
+
+  <!-- Modal admin: gestión de participantes (doble chance) -->
+  <dialog id="participants-modal">
+    <form method="dialog" class="modal" role="document">
+      <button class="modal-close" aria-label="Cerrar" id="participants-close">×</button>
+      <h3>Gestionar participantes</h3>
+      <p class="muted xs">Asigná o quitá un número extra (doble chance). Máx: 1 número extra por persona.</p>
+      <input id="search-participants" class="search" type="search" placeholder="Buscar por nombre o teléfono..." />
+      <div id="participants-list" class="participants-list">
+        <!-- render dinámico -->
+      </div>
+    </form>
+  </dialog>
 
   <main>
     <!-- HERO -->
     <section class="hero">
       <h1>Sorteo Ferretería CasaBella</h1>
       <p>Elegí <strong>un número</strong> entre 000 y 999, participá del sorteo semanal/mensual, y mirá los <a href="#ganadores">últimos ganadores</a>.</p>
+    </section>
+
+    <section class="card howto-card">
+      <div>
+        <h2>¿Cómo participar?</h2>
+        <ol class="steps-list">
+          <li>Iniciá sesión con tu cuenta de Google o Facebook.</li>
+          <li>Elegí un número entre 000 y 999 (no puede estar repetido).</li>
+          <li>Completá el formulario con tu nombre y teléfono (WhatsApp).</li>
+          <li>Esperá el sorteo semanal/mensual y cruzá los dedos.</li>
+        </ol>
+      </div>
     </section>
 
     <!-- FORMULARIO -->
@@ -102,9 +131,7 @@
     <!-- PREMIOS (público) -->
     <section id="premios-publico" class="card prizes-card">
       <h2>Premios vigentes</h2>
-      <div id="premios-grid" class="prizes-grid">
-        <!-- Render dinámico -->
-      </div>
+      <div id="premios-grid" class="prizes-grid"></div>
     </section>
 
     <!-- GALERÍA -->
@@ -151,6 +178,7 @@
 
         <button id="btn-sortear" class="btn accent">Realizar sorteo</button>
         <button id="btn-reset" class="btn danger">Resetear sorteo</button>
+        <button id="btn-manage-participants" class="btn">Gestionar participantes</button>
       </div>
 
       <div class="admin-subgrid">
@@ -158,7 +186,6 @@
           <h3>Gestión de premios (hasta 5)</h3>
           <p class="muted xs">Usá URL de imagen por ahora. (Podemos integrar Firebase Storage cuando quieras).</p>
           <div id="premios-admin">
-            <!-- 5 formularios simples -->
             <div class="premio-form" data-idx="1">
               <h4>Premio #1</h4>
               <input type="text" class="p-titulo" placeholder="Título" />
