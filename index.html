@@ -6,6 +6,10 @@
   <meta name="description" content="Bot de sorteos CasaBella: registrate con tu cuenta, elegí tu número (000–999) y participá. Mirá los últimos ganadores y los premios vigentes." />
   <title>Sorteo CasaBella</title>
 
+  <!-- Favicon (evita 404) -->
+  <link rel="icon" href="assets/logo.png" />
+
+  <!-- Estilos -->
   <link rel="stylesheet" href="styles.css" />
 
   <!-- Precarga opcional de Firebase ESM -->
@@ -13,7 +17,6 @@
     import 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-    import 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
   </script>
 </head>
 <body>
@@ -23,12 +26,13 @@
         <button class="hamburger" id="nav-toggle" aria-label="Abrir menú" aria-controls="primary-nav" aria-expanded="false">
           <span></span><span></span><span></span>
         </button>
-        <img src="logo.png" alt="CasaBella" class="brand-logo" />
+        <img src="assets/logo.png" alt="CasaBella" class="brand-logo" />
         <span class="brand-text">CasaBella | Hogar &amp; Obra</span>
       </div>
 
       <ul class="nav-links" id="primary-nav">
         <li><a href="#participar">Participar</a></li>
+        <li><a href="#premios-publico">Premios</a></li>
         <li><a href="#local">Nuestro Local</a></li>
         <li><a href="#ganadores">Ganadores</a></li>
       </ul>
@@ -138,9 +142,9 @@
     <section id="local" class="gallery">
       <h2>Nuestro local</h2>
       <div class="media-grid">
-        <img src="assets/local-1.jpg" alt="Frente del local" />
-        <img src="assets/local-2.jpg" alt="Interior del local" />
-        <video controls preload="metadata">
+        <img src="assets/LogoEmpresa.png" alt="Frente del local" onerror="this.src='assets/placeholder.jpg'" />
+        <img src="assets/imagenpredeterminada.jpg" alt="Interior del local" onerror="this.src='assets/placeholder.jpg'" />
+        <video controls preload="metadata" poster="assets/placeholder.jpg">
           <source src="assets/recorrido.mp4" type="video/mp4" />
           Tu navegador no soporta video HTML5.
         </video>
@@ -165,6 +169,11 @@
             <option value="2">2 ganadores</option>
             <option value="3" selected>3 ganadores</option>
           </select>
+        </label>
+
+        <label class="avoid-repeat">
+          <input type="checkbox" id="avoid-repeat-uid" checked />
+          Evitar ganador repetido (por persona)
         </label>
 
         <label>
@@ -247,6 +256,7 @@
   <a id="whatsapp-fab" class="fab" href="#" target="_blank" rel="noopener"
      data-whatsapp="+5492233540898" aria-label="Chatear por WhatsApp">WhatsApp</a>
 
+  <!-- Lógica -->
   <script type="module" src="main.js"></script>
 </body>
 </html>

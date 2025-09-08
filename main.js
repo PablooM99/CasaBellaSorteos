@@ -7,12 +7,13 @@ import {
   getFirestore, doc, getDoc, setDoc, serverTimestamp,
   collection, getDocs, query, orderBy, limit, deleteDoc, updateDoc, deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+import { getAnalytics } from "firebase/analytics";
 
 /* ==== CONFIG FIREBASE ==== */
+/* ⚠️ IMPORTANTE: Reemplazá por tu config real. storageBucket suele ser "<proyecto>.appspot.com" */
 const firebaseConfig = {
   apiKey: "AIzaSyC8qgoPDOQ7eFPZpQWkGZjjTFQbNyrdPDo",
-  authDomain: "casabellasorteos.firebaseapp.com",
+  authDomain: "Tcasabellasorteos.firebaseapp.com",
   projectId: "casabellasorteos",
   storageBucket: "casabellasorteos.firebasestorage.app",
   messagingSenderId: "202126848097",
@@ -24,9 +25,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-getAnalytics(app);
 const providerGoogle = new GoogleAuthProvider();
 const providerFacebook = new FacebookAuthProvider();
+const analytics = getAnalytics(app);
 
 /* ==== HELPERS ==== */
 const $ = (sel) => document.querySelector(sel);
@@ -51,7 +52,6 @@ if (navToggle){
     const open = document.body.classList.toggle("nav-open");
     navToggle.setAttribute("aria-expanded", String(open));
   });
-  // Cerrar al clickear un link
   document.querySelectorAll(".nav-links a").forEach(a=>{
     a.addEventListener("click", ()=> {
       document.body.classList.remove("nav-open");
@@ -88,11 +88,11 @@ authBackdrop?.addEventListener("click", closeAuth);
 
 $("#login-google")?.addEventListener("click", async () => {
   try{ await signInWithPopup(auth, providerGoogle); closeAuth(); }
-  catch(e){ alert("Error al iniciar con Google"); console.error(e); }
+  catch(e){ alert("Error al iniciar con Google: " + (e?.code||"ver consola")); console.error(e); }
 });
 $("#login-facebook")?.addEventListener("click", async () => {
   try{ await signInWithPopup(auth, providerFacebook); closeAuth(); }
-  catch(e){ alert("Error al iniciar con Facebook"); console.error(e); }
+  catch(e){ alert("Error al iniciar con Facebook: " + (e?.code||"ver consola")); console.error(e); }
 });
 $("#btn-logout")?.addEventListener("click", async () => { await signOut(auth); });
 
@@ -164,7 +164,7 @@ async function renderPremiosPublico(){
     const card = document.createElement("article");
     card.className = "prize";
     card.innerHTML = `
-      ${p.img ? `<img src="${p.img}" alt="${p.titulo||'Premio'}">` : ""}
+      ${p.img ? `<img src="${p.img}" alt="${p.titulo||'Premio'}" onerror="this.src='assets/placeholder.jpg'">` : `<img src="assets/placeholder.jpg" alt="Premio">`}
       <div class="p-body">
         <h4 class="p-title">${p.titulo || "Premio"}</h4>
         <p class="p-desc">${p.desc || ""}</p>
@@ -238,12 +238,11 @@ $("#form-participar")?.addEventListener("submit", async (e) => {
 
 /* ==== ADMIN: sorteo, reset, premios ==== */
 async function guardarGanador(part, posicion){
-  // part: {uid, nombre, telefono, number}
   const fecha = new Date();
   const fechaISO = fecha.toISOString();
   const fechaDisplay = fecha.toLocaleDateString("es-AR", { year:'numeric', month:'2-digit', day:'2-digit' });
 
-  // historial por persona (clave por uid; si no, usar teléfono)
+  // historial por persona
   const histKey = part.uid || (part.telefono?.replace(/\D/g,'') || part.nombre?.toLowerCase() || "anon");
   const histRef = doc(db, "ganadores_historial", histKey);
   const histSnap = await getDoc(histRef);
@@ -261,7 +260,7 @@ async function guardarGanador(part, posicion){
   return { ...part, posicion, fechaDisplay, victorias };
 }
 
-async function sortear(cantidad = 3){
+async function sortear(cantidad = 3, evitarRepetidoPorUID = true){
   const adminMsg = $("#admin-msg");
   const ol = $("#ganadores-actual");
   if (adminMsg) adminMsg.textContent = "Sorteando...";
@@ -280,12 +279,46 @@ async function sortear(cantidad = 3){
   const take = Math.min(cantidad, pool.length);
   const winners = [];
   const mutable = [...pool];
+  const seenUIDs = new Set();
 
   for (let i=1; i<=take; i++){
-    const idx = Math.floor(Math.random() * mutable.length);
-    const elegido = mutable.splice(idx, 1)[0];
+    let elegido = null;
+    if (!evitarRepetidoPorUID){
+      // clásico: cualquier número puede ganar
+      const idx = Math.floor(Math.random() * mutable.length);
+      elegido = mutable.splice(idx, 1)[0];
+    }else{
+      // evitar dos premios para el mismo UID
+      // intentos acotados para evitar loops
+      for (let tries=0; tries<mutable.length*2; tries++){
+        const idx = Math.floor(Math.random() * mutable.length);
+        const cand = mutable[idx];
+        if (!seenUIDs.has(cand.uid)){ // OK, no repetido
+          elegido = cand;
+          mutable.splice(idx, 1);
+          break;
+        }
+      }
+      // si no encontramos único (hay menos UIDs distintos que premios), tomamos cualquiera
+      if (!elegido && mutable.length){
+        const idx = Math.floor(Math.random() * mutable.length);
+        elegido = mutable.splice(idx, 1)[0];
+      }
+    }
+
+    if (!elegido) break; // no queda pool
+
     const saved = await guardarGanador(elegido, i);
     winners.push(saved);
+    if (evitarRepetidoPorUID && elegido.uid) seenUIDs.add(elegido.uid);
+  }
+
+  // Aviso si no alcanzó la cantidad por falta de UIDs
+  if (winners.length < take && adminMsg){
+    const faltan = take - winners.length;
+    adminMsg.textContent = `Sorteo realizado (${winners.length}/${take}). No había suficientes personas únicas para asignar ${faltan} premio(s) más.`;
+  }else if (adminMsg){
+    adminMsg.textContent = "Sorteo realizado.";
   }
 
   // Mostrar en el panel (1er, 2do, 3er)
@@ -297,14 +330,12 @@ async function sortear(cantidad = 3){
       ol.appendChild(li);
     }
   }
-  if (adminMsg) adminMsg.textContent = "Sorteo realizado.";
   await cargarGanadores();
 }
 
 async function resetearSorteo(){
   const adminMsg = $("#admin-msg");
   if (adminMsg) adminMsg.textContent = "Reseteando…";
-  // borrar numeros y participantes para liberar usuarios y números
   const numerosSnap = await getDocs(collection(db, "numeros"));
   const participantesSnap = await getDocs(collection(db, "participantes"));
   const deletes = [];
@@ -315,12 +346,13 @@ async function resetearSorteo(){
   if (adminMsg) adminMsg.textContent = "Reset OK. Ya pueden volver a participar.";
 }
 
-/* Listeners admin (rol ya controlado por UI/Reglas) */
+/* Listeners admin */
 $("#btn-sortear")?.addEventListener("click", async () => {
   const role = $("#chip-role")?.textContent?.toLowerCase?.() || "";
   if (role !== "admin") return alert("Acceso solo para administradores.");
   const n = Number($("#cant-ganadores").value || 3);
-  await sortear(n);
+  const avoid = !!$("#avoid-repeat-uid")?.checked;
+  await sortear(n, avoid);
 });
 
 $("#btn-reset")?.addEventListener("click", async () => {
@@ -376,13 +408,19 @@ function openParticipants(){
   if (role !== "admin") return alert("Acceso solo para administradores.");
   if (typeof participantsModal.showModal === "function") participantsModal.showModal();
   else {
-    participantsModal.setAttribute("open",""); participantsModal.classList.add("fallback"); participantsBackdrop.classList.add("show");
+    participantsModal.setAttribute("open","");
+    participantsModal.classList.add("fallback");
+    participantsBackdrop.classList.add("show");
   }
   loadParticipants();
 }
 function closeParticipants(){
   if (typeof participantsModal.close === "function") participantsModal.close();
-  else { participantsModal.removeAttribute("open"); participantsModal.classList.remove("fallback"); participantsBackdrop.classList.remove("show"); }
+  else {
+    participantsModal.removeAttribute("open");
+    participantsModal.classList.remove("fallback");
+    participantsBackdrop.classList.remove("show");
+  }
 }
 $("#btn-manage-participants")?.addEventListener("click", openParticipants);
 $("#participants-close")?.addEventListener("click", (e)=>{ e.preventDefault(); closeParticipants(); });
@@ -403,7 +441,6 @@ async function loadParticipants(){
       extraNumber: p.extraNumber || ""
     });
   });
-  // ordenar por nombre
   rows.sort((a,b)=> a.nombre.localeCompare(b.nombre));
   renderParticipantsList(rows);
 }
@@ -427,13 +464,11 @@ function renderParticipantsList(rows){
         <button class="btn tiny danger" data-remove>Quitar</button>
       </div>
     `;
-    // handlers
     row.querySelector("[data-assign]").addEventListener("click", ()=> assignExtra(row));
     row.querySelector("[data-remove]").addEventListener("click", ()=> removeExtra(row));
     list.appendChild(row);
   });
 
-  // búsqueda en vivo
   const search = $("#search-participants");
   if (search){
     search.oninput = () => {
@@ -453,7 +488,6 @@ async function assignExtra(row){
   if (newRaw === "") return alert("Ingresá un número extra (000–999).");
   const number = pad3(newRaw);
 
-  // leer participante actual
   const pref = doc(db, "participantes", uid);
   const psnap = await getDoc(pref);
   if (!psnap.exists()) return alert("Participante no encontrado.");
@@ -481,8 +515,6 @@ async function assignExtra(row){
   // guardar referencia en participante
   await setDoc(pref, { extraNumber: number }, { merge: true });
 
-  // refrescar UI
-  row.querySelector(".num").textContent = principal || "-";
   row.querySelectorAll(".num")[1].textContent = number;
   alert(`Número extra ${number} asignado.`);
 }
@@ -495,12 +527,9 @@ async function removeExtra(row){
   const p = psnap.data();
   if (!p.extraNumber) return alert("Este participante no tiene número extra.");
 
-  // borrar doc en numeros
   try{ await deleteDoc(doc(db,"numeros", p.extraNumber)); }catch{}
-  // borrar campo en participante
   await updateDoc(pref, { extraNumber: deleteField() });
 
-  // refrescar UI
   row.querySelectorAll(".num")[1].textContent = "-";
   row.querySelector(".extra-input").value = "";
   alert(`Número extra ${p.extraNumber} quitado.`);

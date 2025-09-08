@@ -34,8 +34,8 @@ body.nav-open .hamburger span:nth-child(3){transform:translateY(-5px) rotate(-45
 @media (max-width:900px){
   .hamburger{display:inline-flex}
   .nav-links{
-    position:absolute;top:56px;right:20px;background:#fff;border:1px solid #eee;border-radius:12px;
-    box-shadow:var(--shadow);padding:10px 12px;display:none;flex-direction:column;gap:8px;min-width:200px;
+   position:absolute;top:56px;right:20px;background:#fff;border:1px solid #eee;border-radius:12px;
+   box-shadow:var(--shadow);padding:10px 12px;display:none;flex-direction:column;gap:8px;min-width:220px;
   }
   body.nav-open .nav-links{display:flex}
 }
@@ -87,7 +87,7 @@ dialog[open].fallback{position:fixed;left:50%;top:50%;transform:translate(-50%,-
 .hero p{margin:0}
 
 /* CARDS */
-.card{max-width:1000px;margin:26px auto;padding:24px;border-radius:var(--radius);background:var(--blanco);box-shadow:var(--shadow);border:1px solid #eee}
+.card{max-width:1000px;margin:26px auto;padding:24px;border-radius:var(--radius);background:#fff;box-shadow:var(--shadow);border:1px solid #eee}
 
 /* FORM */
 .form-card h2{margin:0 0 16px}
@@ -130,7 +130,8 @@ dialog[open].fallback{position:fixed;left:50%;top:50%;transform:translate(-50%,-
 
 /* ADMIN */
 .admin-card h2{margin:0 0 12px}
-.admin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.admin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;align-items:end}
+.avoid-repeat{display:flex;align-items:center;gap:8px}
 .admin-subgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .admin-col{border:1px dashed #e5e7eb;border-radius:14px;padding:14px;background:#fff}
 .premio-form{display:grid;gap:8px;margin-bottom:12px;border:1px solid #eee;border-radius:12px;padding:10px}
