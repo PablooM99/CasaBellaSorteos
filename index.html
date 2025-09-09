@@ -142,17 +142,39 @@
     </section>
 
     <!-- GALERÍA -->
-    <section id="local" class="gallery">
-      <h2>Nuestro local</h2>
-      <div class="media-grid">
-        <img src="assets/LogoEmpresa.png" alt="Frente del local" />
-        <img src="assets/imagenpredeterminada.jpg" alt="Interior del local" />
-        <video controls preload="metadata">
-          <source src="assets/recorrido.mp4" type="video/mp4" />
-          Tu navegador no soporta video HTML5.
-        </video>
-      </div>
-    </section>
+<section id="local" class="gallery">
+  <h2>Nuestro local</h2>
+  <div class="media-grid">
+    <div class="media-item">
+      <img
+        src="assets/LogoEmpresa.png"
+        alt="Frente del local"
+        loading="lazy"
+        onerror="this.src='assets/logo.png'"
+      />
+    </div>
+
+    <div class="media-item">
+      <img
+        src="assets/imagenpredeterminada.jpg"
+        alt="Interior del local"
+        loading="lazy"
+        onerror="this.src='assets/logo.png'"
+      />
+    </div>
+
+    <div class="media-item">
+      <video
+        controls
+        preload="metadata"
+        poster="assets/logo.png"
+      >
+        <source src="assets/recorrido.mp4" type="video/mp4" />
+        Tu navegador no soporta video HTML5.
+      </video>
+    </div>
+  </div>
+</section>
 
     <!-- GANADORES -->
     <section id="ganadores" class="card winners-card">
