@@ -6,13 +6,16 @@
   <meta name="description" content="Bot de sorteos CasaBella: registrate con tu cuenta, elegí tu número (000–999) y participá. Mirá los últimos ganadores y los premios vigentes." />
   <title>Sorteo CasaBella</title>
 
-  <!-- Favicon (evita 404) -->
+  <!-- Favicon (evita 404 si tu servidor lo busca) -->
   <link rel="icon" href="assets/logo.png" />
 
   <!-- Estilos -->
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- Precarga opcional de Firebase ESM -->
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Precarga opcional de Firebase ESM (no rompe si no hay config) -->
   <script type="module">
     import 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
     import 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
@@ -39,7 +42,7 @@
 
       <!-- Auth icon / sesión -->
       <div class="auth-area">
-        <button id="btn-open-auth" class="icon-btn" aria-label="Iniciar sesión">
+        <button id="btn-open-auth" class="icon-btn" aria-label="Iniciar sesión" type="button">
           <!-- ícono de personita -->
           <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z"/>
@@ -48,7 +51,7 @@
         <div id="session-chip" class="session-chip hidden">
           <span id="chip-name"></span>
           <span id="chip-role" class="badge"></span>
-          <button id="btn-logout" class="btn tiny danger">Salir</button>
+          <button id="btn-logout" class="btn tiny danger" type="button">Salir</button>
         </div>
       </div>
     </nav>
@@ -57,7 +60,7 @@
   <!-- Modal de autenticación -->
   <dialog id="auth-modal">
     <form method="dialog" class="modal" role="document">
-      <button class="modal-close" aria-label="Cerrar" id="auth-close">×</button>
+      <button class="modal-close" aria-label="Cerrar" id="auth-close" type="button">×</button>
       <h3>Iniciá sesión</h3>
       <p class="muted center">Para participar necesitamos validar tu cuenta.</p>
       <div class="social-buttons">
@@ -68,12 +71,12 @@
     </form>
   </dialog>
   <!-- Fallback backdrop para navegadores sin <dialog> -->
-  <div id="dialog-backdrop" class="dialog-backdrop"></div>
+  <div id="dialog-backdrop" class="dialog-backdrop" aria-hidden="true"></div>
 
   <!-- Modal admin: gestión de participantes (doble chance) -->
   <dialog id="participants-modal">
     <form method="dialog" class="modal" role="document">
-      <button class="modal-close" aria-label="Cerrar" id="participants-close">×</button>
+      <button class="modal-close" aria-label="Cerrar" id="participants-close" type="button">×</button>
       <h3>Gestionar participantes</h3>
       <p class="muted xs">Asigná o quitá un número extra (doble chance). Máx: 1 número extra por persona.</p>
       <input id="search-participants" class="search" type="search" placeholder="Buscar por nombre o teléfono..." />
@@ -142,9 +145,9 @@
     <section id="local" class="gallery">
       <h2>Nuestro local</h2>
       <div class="media-grid">
-        <img src="assets/LogoEmpresa.png" alt="Frente del local" onerror="this.src='assets/placeholder.jpg'" />
-        <img src="assets/imagenpredeterminada.jpg" alt="Interior del local" onerror="this.src='assets/placeholder.jpg'" />
-        <video controls preload="metadata" poster="assets/placeholder.jpg">
+        <img src="assets/LogoEmpresa.png" alt="Frente del local" />
+        <img src="assets/imagenpredeterminada.jpg" alt="Interior del local" />
+        <video controls preload="metadata">
           <source src="assets/recorrido.mp4" type="video/mp4" />
           Tu navegador no soporta video HTML5.
         </video>
@@ -185,9 +188,9 @@
           </select>
         </label>
 
-        <button id="btn-sortear" class="btn accent">Realizar sorteo</button>
-        <button id="btn-reset" class="btn danger">Resetear sorteo</button>
-        <button id="btn-manage-participants" class="btn">Gestionar participantes</button>
+        <button id="btn-sortear" class="btn accent" type="button">Realizar sorteo</button>
+        <button id="btn-reset" class="btn danger" type="button">Resetear sorteo</button>
+        <button id="btn-manage-participants" class="btn" type="button">Gestionar participantes</button>
       </div>
 
       <div class="admin-subgrid">
@@ -200,35 +203,35 @@
               <input type="text" class="p-titulo" placeholder="Título" />
               <input type="text" class="p-img" placeholder="URL de imagen" />
               <textarea class="p-desc" rows="2" placeholder="Descripción"></textarea>
-              <button class="btn tiny" data-save>Guardar premio #1</button>
+              <button class="btn tiny" data-save type="button">Guardar premio #1</button>
             </div>
             <div class="premio-form" data-idx="2">
               <h4>Premio #2</h4>
               <input type="text" class="p-titulo" placeholder="Título" />
               <input type="text" class="p-img" placeholder="URL de imagen" />
               <textarea class="p-desc" rows="2" placeholder="Descripción"></textarea>
-              <button class="btn tiny" data-save>Guardar premio #2</button>
+              <button class="btn tiny" data-save type="button">Guardar premio #2</button>
             </div>
             <div class="premio-form" data-idx="3">
               <h4>Premio #3</h4>
               <input type="text" class="p-titulo" placeholder="Título" />
               <input type="text" class="p-img" placeholder="URL de imagen" />
               <textarea class="p-desc" rows="2" placeholder="Descripción"></textarea>
-              <button class="btn tiny" data-save>Guardar premio #3</button>
+              <button class="btn tiny" data-save type="button">Guardar premio #3</button>
             </div>
             <div class="premio-form" data-idx="4">
               <h4>Premio #4</h4>
               <input type="text" class="p-titulo" placeholder="Título" />
               <input type="text" class="p-img" placeholder="URL de imagen" />
               <textarea class="p-desc" rows="2" placeholder="Descripción"></textarea>
-              <button class="btn tiny" data-save>Guardar premio #4</button>
+              <button class="btn tiny" data-save type="button">Guardar premio #4</button>
             </div>
             <div class="premio-form" data-idx="5">
               <h4>Premio #5</h4>
               <input type="text" class="p-titulo" placeholder="Título" />
               <input type="text" class="p-img" placeholder="URL de imagen" />
               <textarea class="p-desc" rows="2" placeholder="Descripción"></textarea>
-              <button class="btn tiny" data-save>Guardar premio #5</button>
+              <button class="btn tiny" data-save type="button">Guardar premio #5</button>
             </div>
           </div>
           <div id="admin-msg" class="admin-msg"></div>

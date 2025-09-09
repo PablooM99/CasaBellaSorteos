@@ -35,7 +35,7 @@ body.nav-open .hamburger span:nth-child(3){transform:translateY(-5px) rotate(-45
   .hamburger{display:inline-flex}
   .nav-links{
    position:absolute;top:56px;right:20px;background:#fff;border:1px solid #eee;border-radius:12px;
-   box-shadow:var(--shadow);padding:10px 12px;display:none;flex-direction:column;gap:8px;min-width:220px;
+   box-shadow:var(--shadow);padding:10px 12px;display:none;flex-direction:column;gap:8px;min-width:220px; z-index:999;
   }
   body.nav-open .nav-links{display:flex}
 }
@@ -65,9 +65,9 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 .xs{font-size:12px}
 
 /* Fallback para <dialog> */
-.dialog-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999}
+.dialog-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:998}
 .dialog-backdrop.show{display:block}
-dialog[open].fallback{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1000}
+dialog[open].fallback{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:999}
 
 /* Listado de participantes (modal admin) */
 .search{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:10px;margin:8px 0 12px}
@@ -141,7 +141,7 @@ dialog[open].fallback{position:fixed;left:50%;top:50%;transform:translate(-50%,-
 /* FOOTER */
 .site-footer{margin-top:36px;padding:20px;background:#f7f7f7;border-top:3px solid var(--naranja);text-align:center}
 .site-footer .socials{display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
-.site-footer a{color:var(--naranja-osc);text-decoration:none;font-weight:700}
+.site-footer a{color:#E65100;text-decoration:none;font-weight:700}
 
 /* FAB WHATSAPP */
 .fab{

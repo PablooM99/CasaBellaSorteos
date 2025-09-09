@@ -1,53 +1,10 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getAuth, onAuthStateChanged, signInWithPopup, signOut,
-  GoogleAuthProvider, FacebookAuthProvider
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, setDoc, serverTimestamp,
-  collection, getDocs, query, orderBy, limit, deleteDoc, updateDoc, deleteField
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAnalytics } from "firebase/analytics";
-
-/* ==== CONFIG FIREBASE ==== */
-/* ⚠️ IMPORTANTE: Reemplazá por tu config real. storageBucket suele ser "<proyecto>.appspot.com" */
-const firebaseConfig = {
-  apiKey: "AIzaSyC8qgoPDOQ7eFPZpQWkGZjjTFQbNyrdPDo",
-  authDomain: "Tcasabellasorteos.firebaseapp.com",
-  projectId: "casabellasorteos",
-  storageBucket: "casabellasorteos.firebasestorage.app",
-  messagingSenderId: "202126848097",
-  appId: "1:202126848097:web:2e6a05b2de5e80fdadfa20",
-  measurementId: "G-N1079L0TV9"
-};
-
-// Init
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const providerGoogle = new GoogleAuthProvider();
-const providerFacebook = new FacebookAuthProvider();
-const analytics = getAnalytics(app);
-
-/* ==== HELPERS ==== */
+/**** BINDINGS DE UI ADELANTADOS (no dependen de Firebase) ****/
 const $ = (sel) => document.querySelector(sel);
-const pad3 = (n) => String(Math.max(0, Math.min(999, Number(n)||0))).padStart(3,"0");
-const inRange = (n) => Number.isFinite(Number(n)) && Number(n) >= 0 && Number(n) <= 999;
-function setText(el, txt, ok=false){ el.textContent = txt; el.style.color = ok ? "#2e7d32" : "#c62828"; }
 
-/* Año footer */
-$("#year").textContent = new Date().getFullYear();
-
-/* FAB WhatsApp */
-(() => {
-  const fab = $("#whatsapp-fab");
-  const numero = fab?.dataset?.whatsapp || "";
-  if (fab) fab.href = `https://wa.me/${numero.replace(/\D/g,'')}`;
-})();
-
-/* ==== NAV: hamburguesa ==== */
-const navToggle = $("#nav-toggle");
-if (navToggle){
+/* Hamburguesa */
+(function initHamburger(){
+  const navToggle = $("#nav-toggle");
+  if (!navToggle) return;
   navToggle.addEventListener("click", () => {
     const open = document.body.classList.toggle("nav-open");
     navToggle.setAttribute("aria-expanded", String(open));
@@ -58,45 +15,107 @@ if (navToggle){
       navToggle.setAttribute("aria-expanded","false");
     });
   });
-}
+})();
 
-/* ==== MODAL AUTH (con fallback para navegadores sin <dialog>) ==== */
+/* Modal auth con fallback universal */
 const authModal = $("#auth-modal");
-const authBackdrop = $("#dialog-backdrop");
-const supportsDialog = !!(authModal && typeof authModal.showModal === "function");
-function openAuth(){
-  if (!authModal) return;
-  if (supportsDialog) authModal.showModal();
-  else {
-    authModal.setAttribute("open","");
-    authModal.classList.add("fallback");
-    authBackdrop.classList.add("show");
-  }
-}
-function closeAuth(){
-  if (!authModal) return;
-  if (supportsDialog) authModal.close();
-  else {
-    authModal.removeAttribute("open");
-    authModal.classList.remove("fallback");
-    authBackdrop.classList.remove("show");
-  }
-}
-$("#btn-open-auth")?.addEventListener("click", openAuth);
-$("#auth-close")?.addEventListener("click", (e)=>{ e.preventDefault(); closeAuth(); });
-authBackdrop?.addEventListener("click", closeAuth);
+const participantsModal = $("#participants-modal");
+const genericBackdrop = $("#dialog-backdrop");
 
+function openDialog(el){
+  if (!el) return;
+  if (el.showModal) el.showModal();
+  else {
+    el.setAttribute("open",""); el.classList.add("fallback");
+    genericBackdrop?.classList.add("show");
+  }
+}
+function closeDialog(el){
+  if (!el) return;
+  if (el.close) el.close();
+  el.removeAttribute("open"); el.classList.remove("fallback");
+  genericBackdrop?.classList.remove("show");
+}
+
+$("#btn-open-auth")?.addEventListener("click", ()=> openDialog(authModal));
+$("#auth-close")?.addEventListener("click", ()=> closeDialog(authModal));
+$("#participants-close")?.addEventListener("click", ()=> closeDialog(participantsModal));
+genericBackdrop?.addEventListener("click", ()=>{
+  closeDialog(authModal); closeDialog(participantsModal);
+});
+
+/* SweetAlert helpers */
+const swal = {
+  ok: (title, text) => Swal.fire({icon:'success', title, text, confirmButtonColor:'#E65100'}),
+  info: (title, text) => Swal.fire({icon:'info', title, text, confirmButtonColor:'#E65100'}),
+  warn: (title, text) => Swal.fire({icon:'warning', title, text, confirmButtonColor:'#E65100'}),
+  err: (title, text) => Swal.fire({icon:'error', title, text, confirmButtonColor:'#E65100'}),
+  html: (title, html) => Swal.fire({icon:'info', title, html, confirmButtonColor:'#E65100'})
+};
+
+/* Año footer + WhatsApp */
+$("#year").textContent = new Date().getFullYear();
+(() => {
+  const fab = $("#whatsapp-fab");
+  const numero = fab?.dataset?.whatsapp || "";
+  if (fab) fab.href = `https://wa.me/${numero.replace(/\D/g,'')}`;
+})();
+
+/**** FIREBASE (carga después de UI para no romper interacciones si falla) ****/
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signInWithPopup, signOut,
+  GoogleAuthProvider, FacebookAuthProvider
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, serverTimestamp,
+  collection, getDocs, query, orderBy, limit, deleteDoc, updateDoc, deleteField
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ⚠️ Reemplazá por tu config real (agregá tu dominio a Auth → Authorized domains) */
+const firebaseConfig = {
+  apiKey: "AIzaSyC8qgoPDOQ7eFPZpQWkGZjjTFQbNyrdPDo",
+  authDomain: "Tcasabellasorteos.firebaseapp.com",
+  projectId: "casabellasorteos",
+  storageBucket: "casabellasorteos.firebasestorage.app",
+  messagingSenderId: "202126848097",
+  appId: "1:202126848097:web:2e6a05b2de5e80fdadfa20",
+  measurementId: "G-N1079L0TV9"
+};
+let app, auth, db, providerGoogle, providerFacebook;
+try{
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  providerGoogle = new GoogleAuthProvider();
+  providerFacebook = new FacebookAuthProvider();
+}catch(e){
+  console.error("Firebase init error:", e);
+  swal.err("Error de configuración", "Revisá tu configuración de Firebase y dominios autorizados.");
+}
+
+/**** HELPERS DE NEGOCIO ****/
+const pad3 = (n) => String(Math.max(0, Math.min(999, Number(n)||0))).padStart(3,"0");
+const inRange = (n) => Number.isFinite(Number(n)) && Number(n) >= 0 && Number(n) <= 999;
+function setText(el, txt, ok=false){ if(!el) return; el.textContent = txt; el.style.color = ok ? "#2e7d32" : "#c62828"; }
+
+/**** LOGIN ****/
 $("#login-google")?.addEventListener("click", async () => {
-  try{ await signInWithPopup(auth, providerGoogle); closeAuth(); }
-  catch(e){ alert("Error al iniciar con Google: " + (e?.code||"ver consola")); console.error(e); }
+  if (!auth) return swal.err("Sin conexión", "Firebase no está inicializado.");
+  try{ await signInWithPopup(auth, providerGoogle); closeDialog(authModal); swal.ok("¡Sesión iniciada!","Listo, ya podés participar."); }
+  catch(e){ console.error(e); swal.err("No se pudo iniciar con Google", e?.code || "Ver consola"); }
 });
 $("#login-facebook")?.addEventListener("click", async () => {
-  try{ await signInWithPopup(auth, providerFacebook); closeAuth(); }
-  catch(e){ alert("Error al iniciar con Facebook: " + (e?.code||"ver consola")); console.error(e); }
+  if (!auth) return swal.err("Sin conexión", "Firebase no está inicializado.");
+  try{ await signInWithPopup(auth, providerFacebook); closeDialog(authModal); swal.ok("¡Sesión iniciada!","Listo, ya podés participar."); }
+  catch(e){ console.error(e); swal.err("No se pudo iniciar con Facebook", e?.code || "Ver consola"); }
 });
-$("#btn-logout")?.addEventListener("click", async () => { await signOut(auth); });
+$("#btn-logout")?.addEventListener("click", async () => {
+  if (!auth) return;
+  await signOut(auth); swal.info("Sesión cerrada","Te esperamos de vuelta 👋");
+});
 
-/* ==== UI sesión / rol ==== */
+/**** UI sesión / rol ****/
 function setAdminUI(isAdmin, email="", role=""){
   const admin = $("#admin");
   const chip = $("#session-chip");
@@ -111,100 +130,106 @@ function setAdminUI(isAdmin, email="", role=""){
   $("#btn-manage-participants").disabled = !isAdmin;
 }
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user){
-    $("#session-chip")?.classList.add("hidden");
-    const admin = $("#admin"); if (admin) admin.hidden = true;
-    return;
-  }
-  try{
-    const uref = doc(db, "users", user.uid);
-    const usnap = await getDoc(uref);
-    const role = usnap.exists() ? (usnap.data().role || "user") : "user";
-    setAdminUI(role === "admin", user.email || user.displayName || "usuario", role);
-  }catch(e){
-    console.error("Error leyendo rol:", e);
-    setAdminUI(false, "usuario", "user");
-  }
-});
-
-/* ==== GANADORES (últimos 10) ==== */
-async function cargarGanadores(){
-  const ul = $("#lista-ganadores");
-  if (!ul) return;
-  ul.innerHTML = "<li>Cargando...</li>";
-  const q = query(collection(db, "ganadores"), orderBy("fechaISO", "desc"), limit(10));
-  const snap = await getDocs(q);
-  ul.innerHTML = "";
-  if (snap.empty){ ul.innerHTML = "<li>Aún no hay ganadores.</li>"; return; }
-  snap.forEach(d => {
-    const g = d.data();
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <span><strong>${g.nombre}</strong> — Nº <span class="winner-badge">${g.number}</span></span>
-      <span>${g.posicion ? (g.posicion + "º · ") : ""}${g.fechaDisplay}</span>
-    `;
-    ul.appendChild(li);
+if (auth) {
+  onAuthStateChanged(auth, async (user) => {
+    if (!user){
+      $("#session-chip")?.classList.add("hidden");
+      const admin = $("#admin"); if (admin) admin.hidden = true;
+      return;
+    }
+    try{
+      const uref = doc(db, "users", user.uid);
+      const usnap = await getDoc(uref);
+      const role = usnap.exists() ? (usnap.data().role || "user") : "user";
+      setAdminUI(role === "admin", user.email || user.displayName || "usuario", role);
+    }catch(e){
+      console.error("Error leyendo rol:", e);
+      setAdminUI(false, "usuario", "user");
+    }
   });
+}
+
+/**** GANADORES (últimos 10) ****/
+async function cargarGanadores(){
+  try{
+    const ul = $("#lista-ganadores");
+    if (!ul || !db) return;
+    ul.innerHTML = "<li>Cargando...</li>";
+    const q = query(collection(db, "ganadores"), orderBy("fechaISO", "desc"), limit(10));
+    const snap = await getDocs(q);
+    ul.innerHTML = "";
+    if (snap.empty){ ul.innerHTML = "<li>Aún no hay ganadores.</li>"; return; }
+    snap.forEach(d => {
+      const g = d.data();
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <span><strong>${g.nombre}</strong> — Nº <span class="winner-badge">${g.number}</span></span>
+        <span>${g.posicion ? (g.posicion + "º · ") : ""}${g.fechaDisplay}</span>
+      `;
+      ul.appendChild(li);
+    });
+  }catch(e){ console.error(e); }
 }
 cargarGanadores();
 
-/* ==== PREMIOS (público) ==== */
+/**** PREMIOS (público) ****/
 async function renderPremiosPublico(){
-  const wrap = $("#premios-grid");
-  if (!wrap) return;
-  wrap.innerHTML = "";
-  const q = query(collection(db, "premios"));
-  const snap = await getDocs(q);
-  if (snap.empty){ wrap.innerHTML = "<p class='muted'>Aún no hay premios cargados.</p>"; return; }
-  const items = [];
-  snap.forEach(d => { const p = d.data(); p._id = d.id; items.push(p); });
-  items.sort((a,b)=> (a.idx||999)-(b.idx||999));
-  items.slice(0,5).forEach(p => {
-    const card = document.createElement("article");
-    card.className = "prize";
-    card.innerHTML = `
-      ${p.img ? `<img src="${p.img}" alt="${p.titulo||'Premio'}" onerror="this.src='assets/placeholder.jpg'">` : `<img src="assets/placeholder.jpg" alt="Premio">`}
-      <div class="p-body">
-        <h4 class="p-title">${p.titulo || "Premio"}</h4>
-        <p class="p-desc">${p.desc || ""}</p>
-      </div>
-    `;
-    wrap.appendChild(card);
-  });
+  try{
+    const wrap = $("#premios-grid");
+    if (!wrap || !db) return;
+    wrap.innerHTML = "";
+    const q = query(collection(db, "premios"));
+    const snap = await getDocs(q);
+    if (snap.empty){ wrap.innerHTML = "<p class='muted'>Aún no hay premios cargados.</p>"; return; }
+    const items = [];
+    snap.forEach(d => { const p = d.data(); p._id = d.id; items.push(p); });
+    items.sort((a,b)=> (a.idx||999)-(b.idx||999));
+    items.slice(0,5).forEach(p => {
+      const card = document.createElement("article");
+      card.className = "prize";
+      card.innerHTML = `
+        ${p.img ? `<img src="${p.img}" alt="${p.titulo||'Premio'}" onerror="this.src='assets/placeholder.jpg'">` : `<img src="assets/placeholder.jpg" alt="Premio">`}
+        <div class="p-body">
+          <h4 class="p-title">${p.titulo || "Premio"}</h4>
+          <p class="p-desc">${p.desc || ""}</p>
+        </div>
+      `;
+      wrap.appendChild(card);
+    });
+  }catch(e){ console.error(e); }
 }
 renderPremiosPublico();
 
-/* ==== INPUT NÚMERO autoformateado ==== */
+/**** INPUT NÚMERO autoformateado ****/
 const numeroInput = $("#numero");
 if (numeroInput){
-  numeroInput.addEventListener("input", () => {
-    const n = Number(numeroInput.value.replace(/\D/g,'') || 0);
+  const toPad = () => {
+    const n = Number((numeroInput.value||"").replace(/\D/g,'')) || 0;
     numeroInput.value = pad3(n);
-  });
-  numeroInput.addEventListener("blur", () => {
-    const n = Number(numeroInput.value.replace(/\D/g,'') || 0);
-    numeroInput.value = pad3(n);
-  });
+  };
+  numeroInput.addEventListener("input", toPad);
+  numeroInput.addEventListener("blur", toPad);
 }
 
-/* ==== REGISTRO (un usuario por sorteo) ==== */
+/**** REGISTRO (un usuario por sorteo) con SweetAlert ****/
 $("#form-participar")?.addEventListener("submit", async (e) => {
   e.preventDefault();
   const msg = $("#msg"); if (msg) msg.textContent = "";
 
+  if (!auth) return swal.err("Sin conexión", "Firebase no está inicializado.");
+
   const user = auth.currentUser;
   if (!user){
-    openAuth();
-    return setText(msg, "Debés iniciar sesión para participar.");
+    openDialog(authModal);
+    return swal.info("Iniciá sesión", "Debés iniciar sesión para participar.");
   }
 
   const nombre = $("#nombre").value.trim();
   const telefono = $("#telefono").value.trim();
   const numeroRaw = $("#numero").value.trim();
 
-  if (!nombre || !telefono) return setText(msg, "Completá nombre y teléfono.");
-  if (!inRange(numeroRaw)) return setText(msg, "El número debe estar entre 000 y 999.");
+  if (!nombre || !telefono) return swal.warn("Datos incompletos","Completá nombre y teléfono.");
+  if (!inRange(numeroRaw)) return swal.warn("Número inválido","Debe estar entre 000 y 999.");
   const numero = pad3(numeroRaw);
 
   try{
@@ -212,14 +237,14 @@ $("#form-participar")?.addEventListener("submit", async (e) => {
     const pref = doc(db, "participantes", user.uid);
     const psnap = await getDoc(pref);
     if (psnap.exists()){
-      return setText(msg, "Ya estás participando en este sorteo. Esperá al próximo o al reset.", false);
+      return swal.info("Ya estás participando","Esperá al próximo sorteo o al reset.");
     }
 
     // ¿Número libre?
     const nref = doc(db, "numeros", numero);
     const nsnap = await getDoc(nref);
     if (nsnap.exists()){
-      return setText(msg, `El número ${numero} ya está elegido. Probá con otro.`, false);
+      return swal.warn("Número ocupado", `El número ${numero} ya está elegido. Probá con otro.`);
     }
 
     // Guardar en ambas colecciones
@@ -227,22 +252,22 @@ $("#form-participar")?.addEventListener("submit", async (e) => {
     await setDoc(nref, payload);
     await setDoc(pref, { uid: user.uid, primaryNumber: numero, nombre, telefono, ts: serverTimestamp() });
 
-    setText(msg, `¡Listo! Quedaste inscripto con el número ${numero}. 🎉`, true);
+    setText(msg, `¡Listo! Quedaste inscripto con el número ${numero}.`, true);
+    swal.ok("¡Inscripción exitosa!", `Participás con el número ${numero}. ¡Suerte! 🎉`);
     e.target.reset();
     if (numeroInput) numeroInput.value = "000";
   }catch(err){
     console.error(err);
-    setText(msg, "Error al registrar. Intentalo nuevamente.");
+    swal.err("Error al registrar","Intentalo nuevamente.");
   }
 });
 
-/* ==== ADMIN: sorteo, reset, premios ==== */
+/**** ADMIN: sorteo, reset, premios (con SweetAlert) ****/
 async function guardarGanador(part, posicion){
   const fecha = new Date();
   const fechaISO = fecha.toISOString();
   const fechaDisplay = fecha.toLocaleDateString("es-AR", { year:'numeric', month:'2-digit', day:'2-digit' });
 
-  // historial por persona
   const histKey = part.uid || (part.telefono?.replace(/\D/g,'') || part.nombre?.toLowerCase() || "anon");
   const histRef = doc(db, "ganadores_historial", histKey);
   const histSnap = await getDoc(histRef);
@@ -266,14 +291,13 @@ async function sortear(cantidad = 3, evitarRepetidoPorUID = true){
   if (adminMsg) adminMsg.textContent = "Sorteando...";
   if (ol) ol.innerHTML = "";
 
-  // Pool = todos los números actuales (incluye extras)
   const snap = await getDocs(collection(db, "numeros"));
   const pool = [];
   snap.forEach(d => pool.push(d.data()));
 
   if (!pool.length){
     if (adminMsg) adminMsg.textContent = "No hay participantes.";
-    return;
+    return swal.info("Sin participantes","No hay inscriptos para sortear.");
   }
 
   const take = Math.min(cantidad, pool.length);
@@ -284,56 +308,55 @@ async function sortear(cantidad = 3, evitarRepetidoPorUID = true){
   for (let i=1; i<=take; i++){
     let elegido = null;
     if (!evitarRepetidoPorUID){
-      // clásico: cualquier número puede ganar
       const idx = Math.floor(Math.random() * mutable.length);
       elegido = mutable.splice(idx, 1)[0];
     }else{
-      // evitar dos premios para el mismo UID
-      // intentos acotados para evitar loops
       for (let tries=0; tries<mutable.length*2; tries++){
         const idx = Math.floor(Math.random() * mutable.length);
         const cand = mutable[idx];
-        if (!seenUIDs.has(cand.uid)){ // OK, no repetido
-          elegido = cand;
-          mutable.splice(idx, 1);
-          break;
+        if (!cand?.uid || !seenUIDs.has(cand.uid)){
+          elegido = cand; mutable.splice(idx,1); break;
         }
       }
-      // si no encontramos único (hay menos UIDs distintos que premios), tomamos cualquiera
       if (!elegido && mutable.length){
         const idx = Math.floor(Math.random() * mutable.length);
         elegido = mutable.splice(idx, 1)[0];
       }
     }
-
-    if (!elegido) break; // no queda pool
+    if (!elegido) break;
 
     const saved = await guardarGanador(elegido, i);
     winners.push(saved);
     if (evitarRepetidoPorUID && elegido.uid) seenUIDs.add(elegido.uid);
   }
 
-  // Aviso si no alcanzó la cantidad por falta de UIDs
-  if (winners.length < take && adminMsg){
-    const faltan = take - winners.length;
-    adminMsg.textContent = `Sorteo realizado (${winners.length}/${take}). No había suficientes personas únicas para asignar ${faltan} premio(s) más.`;
-  }else if (adminMsg){
-    adminMsg.textContent = "Sorteo realizado.";
+  let html = "<ul style='text-align:left;margin:0;padding-left:18px'>";
+  for (const w of winners){
+    const ord = (w.posicion===1?"1er": w.posicion===2?"2do":"3er");
+    html += `<li><b>${ord} ganador:</b> ${w.nombre} (#${w.number}) — ${w.fechaDisplay}</li>`;
+    const li = document.createElement("li");
+    li.textContent = `${ord} ganador: ${w.nombre} (#${w.number}) — ${w.fechaDisplay}`;
+    $("#ganadores-actual")?.appendChild(li);
   }
+  html += "</ul>";
 
-  // Mostrar en el panel (1er, 2do, 3er)
-  if (ol){
-    for (const w of winners){
-      const li = document.createElement("li");
-      const ordinal = (w.posicion===1?"1er": w.posicion===2?"2do":"3er");
-      li.textContent = `${ordinal} ganador: ${w.nombre} (#${w.number}) — ${w.fechaDisplay}`;
-      ol.appendChild(li);
-    }
+  if (winners.length < take){
+    swal.info("Sorteo parcial", `Se asignaron ${winners.length}/${take} premios (no había suficientes personas únicas).${html}`);
+  }else{
+    swal.ok("Sorteo realizado", html);
   }
+  if (adminMsg) adminMsg.textContent = "Sorteo realizado.";
   await cargarGanadores();
 }
 
 async function resetearSorteo(){
+  const res = await Swal.fire({
+    icon:'warning', title:'Resetear sorteo',
+    text:'Borrará todos los números y liberará a los participantes. ¿Continuar?',
+    showCancelButton:true, confirmButtonColor:'#E65100', cancelButtonText:'Cancelar', confirmButtonText:'Sí, resetear'
+  });
+  if (!res.isConfirmed) return;
+
   const adminMsg = $("#admin-msg");
   if (adminMsg) adminMsg.textContent = "Reseteando…";
   const numerosSnap = await getDocs(collection(db, "numeros"));
@@ -342,14 +365,15 @@ async function resetearSorteo(){
   numerosSnap.forEach(d => deletes.push(deleteDoc(doc(db,"numeros",d.id))));
   participantesSnap.forEach(d => deletes.push(deleteDoc(doc(db,"participantes",d.id))));
   await Promise.all(deletes);
-  const ol = $("#ganadores-actual"); if (ol) ol.innerHTML = "";
+  $("#ganadores-actual")?.replaceChildren();
   if (adminMsg) adminMsg.textContent = "Reset OK. Ya pueden volver a participar.";
+  swal.ok("Reset completado","Se liberaron los números y los usuarios.");
 }
 
 /* Listeners admin */
 $("#btn-sortear")?.addEventListener("click", async () => {
   const role = $("#chip-role")?.textContent?.toLowerCase?.() || "";
-  if (role !== "admin") return alert("Acceso solo para administradores.");
+  if (role !== "admin") return swal.err("Acceso denegado","Solo administradores.");
   const n = Number($("#cant-ganadores").value || 3);
   const avoid = !!$("#avoid-repeat-uid")?.checked;
   await sortear(n, avoid);
@@ -357,37 +381,39 @@ $("#btn-sortear")?.addEventListener("click", async () => {
 
 $("#btn-reset")?.addEventListener("click", async () => {
   const role = $("#chip-role")?.textContent?.toLowerCase?.() || "";
-  if (role !== "admin") return alert("Acceso solo para administradores.");
-  if (!confirm("Esto borrará TODOS los números y liberará a todos los participantes. ¿Continuar?")) return;
+  if (role !== "admin") return swal.err("Acceso denegado","Solo administradores.");
   await resetearSorteo();
 });
 
-/* ==== Premios (admin guarda / público renderiza) ==== */
+/**** Premios (admin guarda / público renderiza) ****/
 async function cargarPremioForm(idx){
-  const pref = doc(db, "premios", String(idx));
-  const psnap = await getDoc(pref);
-  const cont = document.querySelector(`.premio-form[data-idx="${idx}"]`);
-  if (!cont) return;
-  const t = cont.querySelector(".p-titulo");
-  const i = cont.querySelector(".p-img");
-  const d = cont.querySelector(".p-desc");
-  if (psnap.exists()){
-    const data = psnap.data();
-    t.value = data.titulo || "";
-    i.value = data.img || "";
-    d.value = data.desc || "";
-  }
+  try{
+    const pref = doc(db, "premios", String(idx));
+    const psnap = await getDoc(pref);
+    const cont = document.querySelector(`.premio-form[data-idx="${idx}"]`);
+    if (!cont) return;
+    const t = cont.querySelector(".p-titulo");
+    const i = cont.querySelector(".p-img");
+    const d = cont.querySelector(".p-desc");
+    if (psnap.exists()){
+      const data = psnap.data();
+      t.value = data.titulo || "";
+      i.value = data.img || "";
+      d.value = data.desc || "";
+    }
+  }catch(e){ console.error(e); }
 }
 
 async function guardarPremio(idx){
   const role = $("#chip-role")?.textContent?.toLowerCase?.();
-  if (role !== "admin") return alert("Solo admin puede guardar premios.");
+  if (role !== "admin") return swal.err("Acceso denegado","Solo administradores.");
   const cont = document.querySelector(`.premio-form[data-idx="${idx}"]`);
   const t = cont.querySelector(".p-titulo").value.trim();
   const i = cont.querySelector(".p-img").value.trim();
   const d = cont.querySelector(".p-desc").value.trim();
   await setDoc(doc(db,"premios",String(idx)), { idx, titulo: t, img: i, desc: d }, { merge: true });
-  const msg = $("#admin-msg"); if (msg) msg.textContent = `Premio #${idx} guardado.`;
+  $("#admin-msg").textContent = `Premio #${idx} guardado.`;
+  swal.ok("Premio guardado", `Se actualizó el premio #${idx}.`);
   await renderPremiosPublico();
 }
 
@@ -399,50 +425,35 @@ document.querySelectorAll(".premio-form [data-save]")?.forEach(btn=>{
 });
 [1,2,3,4,5].forEach(cargarPremioForm);
 
-/* ==== ADMIN: Modal de participantes (doble chance) ==== */
-const participantsModal = $("#participants-modal");
-const participantsBackdrop = $("#dialog-backdrop"); // reutilizamos
-
+/**** ADMIN: Modal de participantes (doble chance) ****/
 function openParticipants(){
   const role = $("#chip-role")?.textContent?.toLowerCase?.();
-  if (role !== "admin") return alert("Acceso solo para administradores.");
-  if (typeof participantsModal.showModal === "function") participantsModal.showModal();
-  else {
-    participantsModal.setAttribute("open","");
-    participantsModal.classList.add("fallback");
-    participantsBackdrop.classList.add("show");
-  }
+  if (role !== "admin") return swal.err("Acceso denegado","Solo administradores.");
+  openDialog(participantsModal);
   loadParticipants();
 }
-function closeParticipants(){
-  if (typeof participantsModal.close === "function") participantsModal.close();
-  else {
-    participantsModal.removeAttribute("open");
-    participantsModal.classList.remove("fallback");
-    participantsBackdrop.classList.remove("show");
-  }
-}
 $("#btn-manage-participants")?.addEventListener("click", openParticipants);
-$("#participants-close")?.addEventListener("click", (e)=>{ e.preventDefault(); closeParticipants(); });
 
 async function loadParticipants(){
-  const list = $("#participants-list");
-  if (!list) return;
-  list.innerHTML = "Cargando participantes...";
-  const snap = await getDocs(collection(db, "participantes"));
-  const rows = [];
-  snap.forEach(d=>{
-    const p = d.data();
-    rows.push({
-      uid: p.uid,
-      nombre: p.nombre || "",
-      telefono: p.telefono || "",
-      primaryNumber: p.primaryNumber || p.number || "",
-      extraNumber: p.extraNumber || ""
+  try{
+    const list = $("#participants-list");
+    if (!list || !db) return;
+    list.innerHTML = "Cargando participantes...";
+    const snap = await getDocs(collection(db, "participantes"));
+    const rows = [];
+    snap.forEach(d=>{
+      const p = d.data();
+      rows.push({
+        uid: p.uid,
+        nombre: p.nombre || "",
+        telefono: p.telefono || "",
+        primaryNumber: p.primaryNumber || p.number || "",
+        extraNumber: p.extraNumber || ""
+      });
     });
-  });
-  rows.sort((a,b)=> a.nombre.localeCompare(b.nombre));
-  renderParticipantsList(rows);
+    rows.sort((a,b)=> a.nombre.localeCompare(b.nombre));
+    renderParticipantsList(rows);
+  }catch(e){ console.error(e); }
 }
 
 function renderParticipantsList(rows){
@@ -460,8 +471,8 @@ function renderParticipantsList(rows){
       <div>Extra: <span class="num">${p.extraNumber || "-"}</span></div>
       <div><input class="extra-input" type="text" placeholder="000" value="${p.extraNumber || ""}" /></div>
       <div class="row-actions">
-        <button class="btn tiny" data-assign>Asignar/Actualizar</button>
-        <button class="btn tiny danger" data-remove>Quitar</button>
+        <button class="btn tiny" data-assign type="button">Asignar/Actualizar</button>
+        <button class="btn tiny danger" data-remove type="button">Quitar</button>
       </div>
     `;
     row.querySelector("[data-assign]").addEventListener("click", ()=> assignExtra(row));
@@ -482,55 +493,59 @@ function renderParticipantsList(rows){
 }
 
 async function assignExtra(row){
-  const uid = row.dataset.uid;
-  const input = row.querySelector(".extra-input");
-  const newRaw = (input.value || "").replace(/\D/g,'');
-  if (newRaw === "") return alert("Ingresá un número extra (000–999).");
-  const number = pad3(newRaw);
+  try{
+    const uid = row.dataset.uid;
+    const input = row.querySelector(".extra-input");
+    const newRaw = (input.value || "").replace(/\D/g,'');
+    if (newRaw === "") return swal.warn("Número requerido","Ingresá un número extra (000–999).");
+    const number = pad3(newRaw);
 
-  const pref = doc(db, "participantes", uid);
-  const psnap = await getDoc(pref);
-  if (!psnap.exists()) return alert("Participante no encontrado.");
-  const p = psnap.data();
-  const principal = p.primaryNumber;
-  if (number === principal) return alert("El número extra no puede ser igual al principal.");
+    const pref = doc(db, "participantes", uid);
+    const psnap = await getDoc(pref);
+    if (!psnap.exists()) return swal.err("No encontrado","Participante no existe.");
+    const p = psnap.data();
+    const principal = p.primaryNumber;
+    if (number === principal) return swal.warn("No permitido","El número extra no puede ser igual al principal.");
 
-  // ¿número libre?
-  const nref = doc(db, "numeros", number);
-  const nsnap = await getDoc(nref);
-  if (nsnap.exists()) return alert(`El número ${number} ya está tomado.`);
+    // ¿número libre?
+    const nref = doc(db, "numeros", number);
+    const nsnap = await getDoc(nref);
+    if (nsnap.exists()) return swal.warn("Número ocupado", `El número ${number} ya está tomado.`);
 
-  // si tenía extra anterior distinto, liberar
-  if (p.extraNumber && p.extraNumber !== number){
-    try{ await deleteDoc(doc(db,"numeros", p.extraNumber)); }catch{}
-  }
+    // si tenía extra anterior distinto, liberar
+    if (p.extraNumber && p.extraNumber !== number){
+      try{ await deleteDoc(doc(db,"numeros", p.extraNumber)); }catch{}
+    }
 
-  // crear número extra en pool
-  const payload = {
-    uid, number, nombre: p.nombre, telefono: p.telefono,
-    ts: serverTimestamp(), extraByAdmin: true
-  };
-  await setDoc(nref, payload);
+    // crear número extra en pool
+    const payload = {
+      uid, number, nombre: p.nombre, telefono: p.telefono,
+      ts: serverTimestamp(), extraByAdmin: true
+    };
+    await setDoc(nref, payload);
 
-  // guardar referencia en participante
-  await setDoc(pref, { extraNumber: number }, { merge: true });
+    // guardar referencia en participante
+    await setDoc(pref, { extraNumber: number }, { merge: true });
 
-  row.querySelectorAll(".num")[1].textContent = number;
-  alert(`Número extra ${number} asignado.`);
+    row.querySelectorAll(".num")[1].textContent = number;
+    swal.ok("Doble chance asignada", `Número extra ${number} guardado.`);
+  }catch(e){ console.error(e); swal.err("Error","No se pudo asignar el número extra."); }
 }
 
 async function removeExtra(row){
-  const uid = row.dataset.uid;
-  const pref = doc(db,"participantes", uid);
-  const psnap = await getDoc(pref);
-  if (!psnap.exists()) return alert("Participante no encontrado.");
-  const p = psnap.data();
-  if (!p.extraNumber) return alert("Este participante no tiene número extra.");
+  try{
+    const uid = row.dataset.uid;
+    const pref = doc(db,"participantes", uid);
+    const psnap = await getDoc(pref);
+    if (!psnap.exists()) return swal.err("No encontrado","Participante no existe.");
+    const p = psnap.data();
+    if (!p.extraNumber) return swal.info("Sin número extra","Este participante no tiene número extra.");
 
-  try{ await deleteDoc(doc(db,"numeros", p.extraNumber)); }catch{}
-  await updateDoc(pref, { extraNumber: deleteField() });
+    try{ await deleteDoc(doc(db,"numeros", p.extraNumber)); }catch{}
+    await updateDoc(pref, { extraNumber: deleteField() });
 
-  row.querySelectorAll(".num")[1].textContent = "-";
-  row.querySelector(".extra-input").value = "";
-  alert(`Número extra ${p.extraNumber} quitado.`);
+    row.querySelectorAll(".num")[1].textContent = "-";
+    row.querySelector(".extra-input").value = "";
+    swal.ok("Doble chance removida", `Se quitó el número extra ${p.extraNumber}.`);
+  }catch(e){ console.error(e); swal.err("Error","No se pudo quitar el número extra."); }
 }

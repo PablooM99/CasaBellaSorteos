@@ -19,3 +19,25 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+
+
+
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC8qgoPDOQ7eFPZpQWkGZjjTFQbNyrdPDo",
+  authDomain: "Tcasabellasorteos.firebaseapp.com",
+  projectId: "casabellasorteos",
+  storageBucket: "casabellasorteos.firebasestorage.app",
+  messagingSenderId: "202126848097",
+  appId: "1:202126848097:web:2e6a05b2de5e80fdadfa20",
+  measurementId: "G-N1079L0TV9"
+};
+
+// Init
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const providerGoogle = new GoogleAuthProvider();
+const providerFacebook = new FacebookAuthProvider();
+const analytics = getAnalytics(app);
