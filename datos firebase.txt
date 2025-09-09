@@ -26,7 +26,7 @@ const analytics = getAnalytics(app);
 
 const firebaseConfig = {
   apiKey: "AIzaSyC8qgoPDOQ7eFPZpQWkGZjjTFQbNyrdPDo",
-  authDomain: "Tcasabellasorteos.firebaseapp.com",
+  authDomain: "casabellasorteos.firebaseapp.com",
   projectId: "casabellasorteos",
   storageBucket: "casabellasorteos.firebasestorage.app",
   messagingSenderId: "202126848097",

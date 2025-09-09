@@ -1,0 +1,8 @@
+elegir la cantidad de premios disponibles, la cantidad de gandores y poder elegir que premio aparece en la pagina y cual no, para que el cliente a la hora de revisar los premios solo vea los que el admin eligió que se vean y los que estan disponibles para el sorteo mismo. 
+
+otra mejora (countdown del sorteo, exportar CSV, lightbox en galería, etc.)
+
+poner un reloj que te diga cuando se realizará el próximo sorteo
+
+resaltar más las cards de instrucciones y del formulario. (un estilo colorido en fluor o neon con movimiento)
+
