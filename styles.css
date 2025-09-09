@@ -1,209 +1,395 @@
-:root{
-  --rojo:#C62828;
-  --naranja:#F57C00;
-  --naranja-osc:#E65100;
-  --gris:#ECEFF1;
-  --gris-700:#455A64;
-  --negro:#111;
-  --blanco:#fff;
-  --radius:18px;
-  --shadow: 0 18px 40px rgba(0,0,0,.15), 0 6px 14px rgba(0,0,0,.08);
-}
-
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Arial,sans-serif;color:var(--gris-700);background:#fafafa}
-img{max-width:100%;display:block}
-
-/* NAVBAR FIJA */
-.site-header{position:sticky;top:0;z-index:1000;background:var(--blanco);box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.nav{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 20px;position:relative}
-.brand{display:flex;align-items:center;gap:10px}
-.brand-logo{height:36px;width:auto}
-.brand-text{font-weight:700}
-
-/* NAV LINKS + HAMBURGUER */
-.nav-links{list-style:none;display:flex;gap:18px;margin:0;padding:0}
-.nav-links a{color:var(--gris-700);text-decoration:none;font-weight:600}
-.nav-links a:hover{color:var(--naranja-osc)}
-.hamburger{display:none;align-items:center;justify-content:center;width:40px;height:40px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;cursor:pointer;margin-right:6px}
-.hamburger span{display:block;width:20px;height:2px;background:#333;margin:3px 0;border-radius:2px;transition:transform .2s ease}
-body.nav-open .hamburger span:nth-child(1){transform:translateY(5px) rotate(45deg)}
-body.nav-open .hamburger span:nth-child(2){opacity:0}
-body.nav-open .hamburger span:nth-child(3){transform:translateY(-5px) rotate(-45deg)}
-
-@media (max-width:900px){
-  .hamburger{display:inline-flex}
-  .nav-links{
-   position:absolute;top:56px;right:20px;background:#fff;border:1px solid #eee;border-radius:12px;
-   box-shadow:var(--shadow);padding:10px 12px;display:none;flex-direction:column;gap:8px;min-width:220px; z-index:999;
+/* ==========================
+   RESET & TOKENS
+   ========================== */
+   *,
+   *::before,
+   *::after { box-sizing: border-box; }
+   
+   :root{
+     --primary: #C62828;         /* rojo CasaBella */
+     --primary-600: #B71C1C;
+     --secondary: #FF6F00;       /* naranja */
+     --secondary-700:#E65100;
+     --bg: #ffffff;
+     --bg-soft:#f7f7f8;
+     --text: #1f2937;
+     --muted: #6b7280;
+     --border:#e5e7eb;
+     --shadow: 0 14px 30px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.06);
+     --radius: 16px;
+   }
+   
+   html, body{ height:100%; }
+   body{
+     margin:0;
+     font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+     color:var(--text);
+     background:var(--bg);
+     line-height:1.5;
+   }
+   
+   /* Helpers */
+   .container{ width:min(1100px, 100%); margin-inline:auto; padding-inline:20px; }
+   .center{ text-align:center; }
+   .muted{ color:var(--muted); }
+   .xs{ font-size:.8rem; }
+   .hidden{ display:none !important; }
+   
+   /* ==========================
+      NAVBAR + HAMBURGUESA
+      ========================== */
+   .nav{
+     position: sticky; top:0; z-index:1000;
+     background:#fff;
+     border-bottom:1px solid var(--border);
+     box-shadow: 0 1px 0 rgba(0,0,0,.02);
+   }
+   .nav .wrap{
+     display:flex; align-items:center; justify-content:space-between;
+     gap:16px; padding:12px 20px;
+   }
+   .brand{ display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); font-weight:700; }
+   .brand img{ height:32px; width:auto; display:block; }
+   
+   .nav-links{
+     display:flex; align-items:center; gap:18px;
+   }
+   .nav-links a{
+     text-decoration:none; color:var(--text); font-weight:600;
+     padding:8px 10px; border-radius:10px;
+   }
+   .nav-links a:hover{ background:var(--bg-soft); }
+   
+   #nav-toggle{
+     appearance:none; border:0; background:transparent;
+     font-size:28px; line-height:1; cursor:pointer; display:none;
+   }
+   
+   .session-chip{
+     display:flex; align-items:center; gap:8px;
+     padding:6px 10px; border:1px solid var(--border);
+     border-radius:999px; background:#fff;
+   }
+   
+   /* Mobile menu */
+   @media (max-width: 900px){
+     #nav-toggle{ display:block; }
+     .nav-links{
+       position: fixed; inset:64px 0 auto 0;
+       background:#fff;
+       border-top:1px solid var(--border);
+       box-shadow: var(--shadow);
+       padding:16px 20px;
+       flex-direction:column; align-items:flex-start; gap:12px;
+       transform: translateY(-120%); transition: transform .28s ease;
+     }
+     body.nav-open .nav-links{ transform: translateY(0); }
+   }
+   
+   /* ==========================
+      TITLES & SECTIONS
+      ========================== */
+   section{ padding:28px 0; }
+   section h2{
+     margin:0 0 14px;
+     font-size: clamp(1.4rem, 1.1rem + 1vw, 2rem);
+     font-weight:800;
+   }
+   .lead{ color:var(--muted); margin:0 0 20px; }
+   
+   /* ==========================
+      BOTONES / INPUTS
+      ========================== */
+   .btn{
+     appearance:none; border:0; cursor:pointer;
+     background:linear-gradient(180deg, var(--secondary), var(--secondary-700));
+     color:#fff; border-radius:12px;
+     padding:10px 16px; font-weight:700; box-shadow: var(--shadow);
+   }
+   .btn:hover{ filter:brightness(.98); transform: translateY(-1px); }
+   .btn:active{ transform: translateY(0); }
+   .btn.ghost{
+     background:#fff; color:var(--secondary);
+     border:1px solid var(--secondary);
+   }
+   .btn.danger{ background:linear-gradient(180deg, #e53935, #c62828); }
+   .btn.tiny{ padding:6px 10px; font-size:.85rem; border-radius:10px; }
+   
+   .input, .select, .textarea{
+     width:100%; border:1px solid var(--border); background:#fff;
+     border-radius:12px; padding:12px 12px; outline:none;
+     font:inherit;
+   }
+   .input:focus, .select:focus, .textarea:focus{ border-color: var(--secondary); box-shadow: 0 0 0 3px rgba(255,111,0,.15); }
+   
+/* Registrar la custom property para que la animación funcione en todos los Chromium */
+@supports (background: conic-gradient(red, blue)) {
+  @property --angle {
+    syntax: "<angle>";
+    inherits: true;           /* importante para que lo lean los ::before/::after */
+    initial-value: 0deg;
   }
-  body.nav-open .nav-links{display:flex}
 }
 
-/* Auth area (icono + chip) */
-.auth-area{display:flex;align-items:center;gap:8px}
-.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;color:#374151;cursor:pointer}
-.icon-btn:hover{background:#f3f4f6}
-.session-chip{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #e5e7eb;border-radius:999px;background:#fff}
-.session-chip.hidden{display:none}
-.badge{
-  background:var(--naranja-osc);color:#fff;font-weight:800;
-  padding:4px 8px;border-radius:999px;margin-left:4px;font-size:12px;
-}
-.btn.tiny{padding:6px 10px;border-radius:10px;font-size:12px}
+/* ================= Borde neón 360° (interior blanco) ================= */
+.howto-card, .form-card{
+  /* ajustes */
+  --ring: 4px;                /* grosor del borde */
+  --radius: 18px;             /* radio */
+  --speed: 8s;                /* velocidad (si está animado) */
+  --c1:#C62828;               /* rojo CasaBella */
+  --c2:#FF6F00;               /* naranja */
+  --c3:#FFD54F;               /* ámbar */
+  --angle: 0deg;              /* ángulo inicial del gradiente */
 
-/* MODAL (auth + admin participantes) */
-dialog::backdrop{background:rgba(0,0,0,.4)}
-.modal{position:relative;max-width:640px;margin:auto;padding:22px;border:none;border-radius:16px;background:#fff;box-shadow:var(--shadow)}
-.modal h3{margin:0 0 10px}
-.modal-close{position:absolute;top:8px;right:10px;border:none;background:transparent;font-size:22px;cursor:pointer}
-.social-buttons{display:grid;gap:10px;margin-top:10px}
-.btn.social{display:flex;align-items:center;justify-content:center;font-weight:700;border-radius:12px;padding:12px 14px;border:1px solid #e5e7eb;background:#fff;cursor:pointer}
-.btn.social.google{color:#202124}
-.btn.social.facebook{color:#0b5fc6}
-.center{text-align:center}
-.xs{font-size:12px}
-
-/* Fallback para <dialog> */
-.dialog-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:998}
-.dialog-backdrop.show{display:block}
-dialog[open].fallback{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:999}
-
-/* Listado de participantes (modal admin) */
-.search{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:10px;margin:8px 0 12px}
-.participants-list{display:grid;gap:8px;max-height:50vh;overflow:auto}
-.participant-row{display:grid;grid-template-columns:2fr 1.2fr .7fr 1fr auto auto;gap:8px;align-items:center;border:1px solid #eee;border-radius:12px;padding:8px}
-.participant-row .num{font-weight:800}
-.participant-row .extra-input{padding:8px 10px;border:1px solid #ddd;border-radius:10px;width:100%}
-.participant-row .row-actions{display:flex;gap:6px}
-@media (max-width:640px){
-  .participant-row{grid-template-columns:1fr 1fr;grid-auto-rows:auto}
-  .participant-row .row-actions{grid-column:1/-1}
+  position: relative;
+  padding: 20px;
+  border-radius: var(--radius);
+  background: transparent;    /* el blanco lo pone ::after */
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  isolation: isolate;
+  will-change: --angle;       /* performance */
 }
 
-/* HERO */
-.hero{max-width:900px;margin:36px auto 20px;padding:0 20px;text-align:center}
-.hero h1{font-size:clamp(26px,4vw,40px);color:var(--rojo);margin:0 0 8px}
-.hero p{margin:0}
-
-/* CARDS */
-.card{max-width:1000px;margin:26px auto;padding:24px;border-radius:var(--radius);background:#fff;box-shadow:var(--shadow);border:1px solid #eee}
-
-/* FORM */
-.form-card h2{margin:0 0 16px}
-.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
-.form-grid .full{grid-column:1 / -1}
-.form-grid label{display:flex;flex-direction:column;font-weight:600;font-size:14px}
-.form-grid input{margin-top:6px;padding:12px 14px;border:1px solid #ddd;border-radius:12px;outline:none;background:#fff;box-shadow:inset 0 1px 0 rgba(0,0,0,.02)}
-.form-grid input:focus{border-color:var(--naranja);box-shadow:0 0 0 3px rgba(245,124,0,.15)}
-.form-actions{display:flex;align-items:center;gap:16px;margin-top:10px;flex-wrap:wrap}
-.muted{font-size:13px;color:#6b7280}
-#msg{margin-top:10px;font-weight:700}
-
-/* BOTONES */
-.btn{cursor:pointer;border:none;border-radius:14px;padding:12px 18px;font-weight:700}
-.btn.primary{background:linear-gradient(180deg,var(--naranja),var(--naranja-osc));color:#fff}
-.btn.accent{background:linear-gradient(180deg,#ff7043,#d84315);color:#fff}
-.btn.danger{background:linear-gradient(180deg,#ef5350,#c62828);color:#fff}
-.btn:disabled{opacity:.7;cursor:not-allowed}
-
-/* PREMIOS */
-.prizes-card h2{margin:0 0 12px}
-.prizes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.prize{border:1px solid #eee;border-radius:14px;overflow:hidden;background:#fff;box-shadow:var(--shadow)}
-.prize img{width:100%;height:180px;object-fit:cover}
-.prize .p-body{padding:12px 14px}
-.prize .p-title{font-weight:800;margin:0 0 6px}
-.prize .p-desc{font-size:14px;margin:0;color:#555}
-
-/* === GALERÍA ESTABLE (PC y Mobile) === */
-.gallery{max-width:1100px;margin:36px auto;padding:0 20px}
-.gallery h2{margin:0 0 12px}
-
-/* 3 columnas en desktop, 2 en tablet, 1 en mobile */
-.media-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:16px;
+/* anillo de color: recorre TODO el contorno */
+.howto-card::before,
+.form-card::before{
+  content:"";
+  position:absolute; inset:0;
+  border-radius: inherit;
+  padding: var(--ring);
+  background: conic-gradient(from var(--angle),
+              var(--c1), var(--c2) 50%, var(--c3), var(--c1));
+  /* máscara: deja visible sólo el borde, centro transparente */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  pointer-events:none;
 }
 
-@media (max-width:980px){
-  .media-grid{grid-template-columns:repeat(2,1fr)}
-}
-@media (max-width:560px){
-  .media-grid{grid-template-columns:1fr}
-}
-
-/* Cada item tiene relación de aspecto fija para evitar “saltos” */
-.media-item{
-  position:relative;
-  width:100%;
-  aspect-ratio:16 / 9;            /* Alto consistente */
-  border-radius:14px;
-  overflow:hidden;
-  background:#f1f1f1;             /* placeholder suave */
-  box-shadow:var(--shadow);
-}
-
-/* Imagen y video ocupan todo el contenedor; se recortan suavemente */
-.media-item > img,
-.media-item > video{
+/* interior blanco real (por encima del anillo) */
+.howto-card::after,
+.form-card::after{
+  content:"";
   position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  object-fit:cover;                /* Cambiá a 'contain' si querés ver todo sin recortes */
-  display:block;
+  inset: var(--ring);
+  border-radius: calc(var(--radius) - var(--ring));
+  background: #fff;
+  z-index: 1;
+  box-shadow:
+    0 10px 22px rgba(0,0,0,.06),
+    0 0 0 1px rgba(0,0,0,.02);
 }
 
-/* Opcional: suavizado en hover (sobre todo para desktop) */
-@media (hover:hover){
-  .media-item:hover{transform:translateY(-1px)}
+/* el contenido siempre arriba del fondo blanco */
+.howto-card > *, .form-card > *{ position: relative; z-index: 2; }
+
+/* Activa la animación SOLO si agregás .neon-animated al contenedor */
+.howto-card.neon-animated,
+.form-card.neon-animated{
+  animation: neon-spin var(--speed) linear infinite;
 }
 
-
-/* GANADORES */
-.winners-card h2{margin:0 0 12px}
-.winners-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
-.winners-list li{padding:12px 14px;border:1px solid #eee;border-radius:12px;background:#fff;display:flex;justify-content:space-between;align-items:center}
-.winner-badge{background:var(--rojo);color:#fff;font-weight:700;padding:6px 10px;border-radius:999px}
-
-/* ADMIN */
-.admin-card h2{margin:0 0 12px}
-.admin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;align-items:end}
-.avoid-repeat{display:flex;align-items:center;gap:8px}
-.admin-subgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.admin-col{border:1px dashed #e5e7eb;border-radius:14px;padding:14px;background:#fff}
-.premio-form{display:grid;gap:8px;margin-bottom:12px;border:1px solid #eee;border-radius:12px;padding:10px}
-.premio-form h4{margin:0}
-.admin-msg{margin-top:10px;font-weight:700}
-
-/* FOOTER */
-.site-footer{margin-top:36px;padding:20px;background:#f7f7f7;border-top:3px solid var(--naranja);text-align:center}
-.site-footer .socials{display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
-.site-footer a{color:#E65100;text-decoration:none;font-weight:700}
-
-/* FAB WHATSAPP */
-.fab{
-  position:fixed;right:18px;bottom:18px;z-index:1100;
-  background:linear-gradient(180deg,var(--rojo),#8e1414);
-  color:#fff;text-decoration:none;font-weight:800;border-radius:999px;
-  padding:14px 16px;box-shadow:var(--shadow);
-}
-.fab:hover{transform:translateY(-1px)}
-
-/* Responsive refinado */
-@media (max-width:980px){
-  .form-grid{grid-template-columns:1fr}
-  .admin-grid{grid-template-columns:1fr 1fr}
-  .admin-subgrid{grid-template-columns:1fr}
-  .prizes-grid{grid-template-columns:1fr 1fr}
-  .media-grid{grid-template-columns:1fr 1fr}
-}
-@media (max-width:560px){
-  .prizes-grid, .media-grid{grid-template-columns:1fr}
+/* En vez de rotar la caja, animamos el ÁNGULO del gradiente */
+@keyframes neon-spin{
+  to { --angle: 360deg; }
 }
 
-.howto-card{text-align:center;}
-.howto-card h2{margin:0 0 24px; font-size:clamp(20px,3vw,28px);}
-.howto-card li {list-style:none; margin-bottom:12px; font-size:1rem; font-weight:bold;}
+/* Respeto a reduce-motion */
+@media (prefers-reduced-motion: reduce){
+  .howto-card.neon-animated, .form-card.neon-animated{ animation: none; }
+}
+
+  
+   
+   /* ==========================
+      CAPTCHA/HELPERS
+      ========================== */
+   .small{ font-size:.9rem; }
+   .helper{ color:var(--muted); font-size:.9rem; }
+   
+   /* ==========================
+      GANADORES
+      ========================== */
+   #lista-ganadores{ list-style:none; padding:0; margin:0; display:grid; gap:10px; }
+   #lista-ganadores li{
+     display:flex; align-items:center; justify-content:space-between;
+     border:1px solid var(--border); border-radius:12px; padding:10px 12px; background:#fff;
+   }
+   .winner-badge{
+     display:inline-flex; align-items:center; justify-content:center;
+     min-width:42px; height:28px; padding:0 8px;
+     background:linear-gradient(180deg, var(--primary), var(--primary-600));
+     color:#fff; border-radius:999px; font-weight:800;
+   }
+   
+   /* ==========================
+      PREMIOS (público)
+      ========================== */
+   #premios-grid{
+     display:grid;
+     grid-template-columns: repeat(3, 1fr);
+     gap:16px;
+   }
+   @media (max-width:900px){ #premios-grid{ grid-template-columns: repeat(2, 1fr); } }
+   @media (max-width:560px){ #premios-grid{ grid-template-columns: 1fr; } }
+   
+   .prize{
+     background:#fff; border:1px solid var(--border); border-radius:16px;
+     box-shadow: var(--shadow); overflow:hidden;
+   }
+   .prize img{
+     width:100%; height:220px; display:block;
+     object-fit: contain;                /* Se adapta sin recortarse */
+     background:#f4f6f8;                 /* “lienzo” si sobran bordes */
+   }
+   @media (max-width:560px){ .prize img{ height:200px; } }
+   .prize .p-body{ padding:12px 14px; }
+   .prize .p-title{ margin:0 0 6px; font-size:1.05rem; }
+   .prize .p-desc{ margin:0; color:var(--muted); }
+   
+   /* ==========================
+      GALERÍA (imágenes + video con aspecto fijo)
+      ========================== */
+   .gallery{max-width:1100px;margin:36px auto;padding:0 20px}
+   .gallery h2{margin:0 0 12px}
+   .media-grid{
+     display:grid;
+     grid-template-columns:repeat(3,1fr);
+     gap:16px;
+   }
+   @media (max-width:980px){ .media-grid{ grid-template-columns:repeat(2,1fr); } }
+   @media (max-width:560px){ .media-grid{ grid-template-columns:1fr; } }
+   .media-item{
+     position:relative; width:100%; aspect-ratio:16/9;
+     border-radius:14px; overflow:hidden; background:#f1f1f1; box-shadow:var(--shadow);
+   }
+   .media-item > img,
+   .media-item > video{
+     position:absolute; inset:0; width:100%; height:100%;
+     object-fit:cover; display:block;
+   }
+   @media (hover:hover){ .media-item:hover{ transform:translateY(-1px); } }
+   
+   /* ==========================
+      ADMIN
+      ========================== */
+   #admin[hidden]{ display:none !important; }
+   .admin-grid{
+     display:grid; grid-template-columns: 1.1fr .9fr; gap:16px;
+   }
+   @media (max-width: 900px){ .admin-grid{ grid-template-columns:1fr; } }
+   
+   .admin-card{
+     background:#fff; border:1px solid var(--border); border-radius:16px;
+     box-shadow: var(--shadow); padding:16px;
+   }
+   .admin-card h3{ margin:4px 0 12px; }
+   
+   .premios-forms{
+     display:grid; grid-template-columns: repeat(2, 1fr); gap:12px;
+   }
+   @media (max-width: 900px){ .premios-forms{ grid-template-columns:1fr; } }
+   
+   .premio-form{
+     border:1px dashed var(--border); border-radius:12px; padding:12px; background:#fff;
+     display:grid; gap:8px;
+   }
+   .premio-form label{ font-weight:700; }
+   .premio-form .row{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+   @media (max-width:700px){ .premio-form .row{ grid-template-columns:1fr; } }
+   
+   /* ==========================
+      PARTICIPANTES (modal admin)
+      ========================== */
+   #participants-list{ display:grid; gap:10px; }
+   .participant-row{
+     display:grid; align-items:center;
+     grid-template-columns: 1.2fr .6fr .6fr .5fr .6fr;
+     gap:10px; border:1px solid var(--border); border-radius:12px; background:#fff;
+     padding:10px 12px;
+   }
+   .participant-row .row-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+   .participant-row .extra-input{ width:100%; text-transform:uppercase; }
+   @media (max-width:900px){
+     .participant-row{ grid-template-columns: 1fr 1fr; }
+   }
+   
+   /* ==========================
+      DIALOG / MODALS
+      ========================== */
+   dialog{
+     border:0; border-radius:16px; padding:0; width:min(520px, 96vw);
+     box-shadow: var(--shadow); background:#fff;
+   }
+   dialog .dialog-body{ padding:16px; }
+   dialog::backdrop{ background: rgba(0,0,0,.3); }
+   
+   dialog.fallback[open]{ display:block; position:fixed; inset:50% auto auto 50%;
+     transform: translate(-50%, -50%); z-index:1100;
+   }
+   #dialog-backdrop{
+     display:none; position:fixed; inset:0; z-index:1090;
+     background: rgba(0,0,0,.35);
+   }
+   #dialog-backdrop.show{ display:block; }
+   
+   /* ==========================
+      FOOTER
+      ========================== */
+   footer{
+     margin-top:30px; padding:22px 0; background:#111; color:#e5e5e5;
+   }
+   footer a{ color:#fff; text-decoration:none; }
+   footer .social{ display:flex; gap:12px; align-items:center; }
+   
+   /* ==========================
+      WHATSAPP FAB
+      ========================== */
+   #whatsapp-fab{
+     position:fixed; right:18px; bottom:18px; z-index:1100;
+     width:56px; height:56px; border-radius:999px;
+     background:#25D366; color:#fff; display:grid; place-items:center;
+     box-shadow: 0 12px 24px rgba(37,211,102,.35);
+     text-decoration:none; font-size:26px; font-weight:900;
+   }
+   #whatsapp-fab:hover{ transform: translateY(-1px); }
+   
+   /* ==========================
+      UTILIDADES EXTRA
+      ========================== */
+   .card{ background:#fff; border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); }
+   .badge{
+     display:inline-flex; align-items:center; gap:6px;
+     padding:6px 10px; border-radius:999px; background:#fee; color:#b71c1c; font-weight:700;
+   }
+   
+   /* ==========================
+      BANNER/HEAD HERO (opcional)
+      ========================== */
+   .hero{
+     display:grid; grid-template-columns: 1.1fr .9fr; gap:18px; align-items:center;
+     padding:18px 0 0;
+   }
+   @media (max-width:900px){ .hero{ grid-template-columns:1fr; } }
+   .hero .hero-card{
+     border-radius:18px; padding:18px; background:linear-gradient(180deg,#fff, #f9fafb);
+     border:1px solid var(--border); box-shadow:var(--shadow);
+   }
+   
+   /* ==========================
+      MENSAJES DEL FORM
+      ========================== */
+   #msg{ margin-top:10px; font-weight:700; }
+   
+   /* ==========================
+      TABLES LIGERAS (si las usás)
+      ========================== */
+   .table{
+     width:100%; border-collapse: collapse; background:#fff; border-radius:12px; overflow:hidden;
+     border:1px solid var(--border);
+   }
+   .table th, .table td{ padding:10px 12px; border-bottom:1px solid var(--border); text-align:left; }
+   .table tr:last-child td{ border-bottom:0; }
+   

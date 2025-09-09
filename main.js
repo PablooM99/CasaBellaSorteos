@@ -62,19 +62,59 @@
      if (fab) fab.href = `https://wa.me/${numero.replace(/\D/g,'')}`;
    })();
    
-   /* Input número con padding a 3 dígitos */
+   /* ==========================
+      INPUT NÚMERO (000–999) — rellena desde la derecha
+      ========================== */
    const pad3 = (n) => String(Math.max(0, Math.min(999, Number(n)||0))).padStart(3,"0");
    const inRange = (n) => Number.isFinite(Number(n)) && Number(n) >= 0 && Number(n) <= 999;
    function setText(el, txt, ok=false){ if(!el) return; el.textContent = txt; el.style.color = ok ? "#2e7d32" : "#c62828"; }
+   
    const numeroInput = $("#numero");
    if (numeroInput){
-     const toPad = () => {
-       const n = Number((numeroInput.value||"").replace(/\D/g,'')) || 0;
-       numeroInput.value = pad3(n);
-     };
-     numeroInput.addEventListener("input", toPad);
-     numeroInput.addEventListener("blur", toPad);
+     if (!numeroInput.value) numeroInput.value = "000";
+   
+     // Desktop: simula display de 3 dígitos (push-right + backspace)
+     numeroInput.addEventListener("keydown", (e) => {
+       if (["Tab","ArrowLeft","ArrowRight","Home","End"].includes(e.key) || e.ctrlKey || e.metaKey) return;
+   
+       if (/^[0-9]$/.test(e.key)) {
+         e.preventDefault();
+         const raw = numeroInput.value.replace(/\D/g,"").slice(-3);
+         const shifted = (raw + e.key).slice(-3);
+         numeroInput.value = shifted.padStart(3,"0");
+         return;
+       }
+       if (e.key === "Backspace") {
+         e.preventDefault();
+         const raw = numeroInput.value.replace(/\D/g,"").slice(-3);
+         const shifted = ("0" + raw).slice(0,3);
+         numeroInput.value = shifted.padStart(3,"0");
+         return;
+       }
+       if (e.key === "Delete") {
+         e.preventDefault();
+         numeroInput.value = "000";
+         return;
+       }
+       e.preventDefault();
+     });
+   
+     // Mobile fallback
+     numeroInput.addEventListener("input", () => {
+       let digits = numeroInput.value.replace(/\D/g,"");
+       if (digits.length > 3) digits = digits.slice(-3);
+       numeroInput.value = digits.padStart(3,"0");
+     });
+   
+     numeroInput.addEventListener("focus", () => setTimeout(() => numeroInput.select(), 0));
+     numeroInput.addEventListener("blur", () => {
+       const digits = numeroInput.value.replace(/\D/g,"").slice(-3);
+       numeroInput.value = digits.padStart(3,"0");
+     });
    }
+   
+   /* Normalizador simple de teléfono */
+   const normalizePhone = (v) => (v||"").replace(/[^\d+]/g,"").trim();
    
    /* ==========================
       FIREBASE
@@ -90,7 +130,7 @@
      collection, getDocs, query, orderBy, limit, deleteDoc, updateDoc, deleteField
    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
    
-   /* ⚠️ Reemplazá por tu config real. Agregá tu host a Auth → Settings → Authorized domains */
+   /* ⚠️ Reemplazá por tu config real */
    const firebaseConfig = {
     apiKey: "AIzaSyC8qgoPDOQ7eFPZpQWkGZjjTFQbNyrdPDo",
     authDomain: "casabellasorteos.firebaseapp.com",
@@ -108,13 +148,12 @@
      db = getFirestore(app);
      providerGoogle = new GoogleAuthProvider();
      providerFacebook = new FacebookAuthProvider();
-     // Persistencia de sesión
      setPersistence(auth, browserLocalPersistence).catch(()=>{});
-     // Resolver retorno de signInWithRedirect si ocurrió
      (async () => {
        try {
          const redir = await getRedirectResult(auth);
          if (redir?.user) {
+           await ensureUserDoc(redir.user);
            closeDialog(authModal);
            swal.ok("¡Sesión iniciada!", "Listo, ya podés participar.");
          }
@@ -126,28 +165,53 @@
    }
    
    /* ==========================
-      AUTENTICACIÓN
+      USERS: bootstrap/actualización automática en Firestore
+      ========================== */
+   async function ensureUserDoc(u){
+     if (!u || !db) return;
+     const uref = doc(db, "users", u.uid);
+     const usnap = await getDoc(uref);
+     if (!usnap.exists()){
+       await setDoc(uref, {
+         uid: u.uid,
+         email: u.email || "",
+         displayName: u.displayName || "",
+         photoURL: u.photoURL || null,
+         role: "user",
+         createdAt: serverTimestamp(),
+         lastLoginAt: serverTimestamp()
+       });
+     } else {
+       await setDoc(uref, {
+         email: u.email || "",
+         displayName: u.displayName || "",
+         photoURL: u.photoURL || null,
+         lastLoginAt: serverTimestamp()
+       }, { merge: true });
+     }
+   }
+   
+   /* ==========================
+      AUTENTICACIÓN (con fallback a redirect)
       ========================== */
    async function loginWithProvider(provider) {
      if (!auth) return swal.err("Sin conexión", "Firebase no está inicializado.");
    
-     // Si estás en file://, el popup NO funciona → usar redirect
      if (location.protocol === "file:") {
-       await swal.warn("Abrí con http://", "El login de Google no funciona desde file://. Usá un servidor local.");
+       await swal.warn("Abrí con http://", "El login no funciona desde file://. Usá un servidor local.");
        return signInWithRedirect(auth, provider);
      }
    
+     // 1) AUTH
      try {
        await signInWithPopup(auth, provider);
-       closeDialog(authModal);
-       swal.ok("¡Sesión iniciada!", "Listo, ya podés participar.");
      } catch (e) {
-       console.warn("Popup login falló:", e?.code, e);
+       console.warn("Auth popup error:", e?.code, e);
        if (e?.code === "auth/popup-blocked" || e?.code === "auth/popup-closed-by-user") {
          const res = await Swal.fire({
            icon: "info",
            title: "Continuar con redirección",
-           text: "El navegador bloqueó o cerró el popup. Probemos con inicio de sesión por redirección.",
+           text: "El navegador bloqueó/cerró el popup. Probemos con redirección.",
            showCancelButton: true,
            confirmButtonText: "Continuar",
            confirmButtonColor: "#E65100"
@@ -156,13 +220,37 @@
          return;
        }
        if (e?.code === "auth/unauthorized-domain") {
-         return swal.err("Dominio no autorizado", "Agregá tu dominio a Authentication → Settings → Authorized domains.");
+         return swal.err("Dominio no autorizado", "Agregá tu dominio en Auth → Settings → Authorized domains.");
        }
        if (e?.message?.includes("redirect_uri_mismatch")) {
-         return swal.err("redirect_uri_mismatch", "Revisá el proveedor Google en Firebase y los Redirect URIs.");
+         return swal.err("redirect_uri_mismatch", "Revisá los Redirect URIs del proveedor Google.");
        }
-       swal.err("No se pudo iniciar sesión", e?.code || "Ver consola");
+       return swal.err("No se pudo iniciar sesión", e?.code || "Ver consola");
      }
+   
+     // 2) FIRESTORE (bootstrap perfil)
+     try {
+       await ensureUserDoc(auth.currentUser);
+     } catch (e) {
+       console.error("Bootstrap users/{uid} error:", e);
+       if (e?.code === "permission-denied") {
+         await Swal.fire({
+           icon: "warning",
+           title: "Perfil no guardado en Firestore",
+           html: `
+             <p>Tu sesión está iniciada, pero Firestore rechazó crear <code>users/{uid}</code>.</p>
+             <p>Publicá reglas que permitan al usuario crear su doc con <b>role="user"</b>
+             o creá el doc manualmente.</p>
+           `,
+           confirmButtonColor: "#E65100"
+         });
+       } else {
+         await swal.err("No se pudo guardar el perfil", e?.code || "Ver consola");
+       }
+     }
+   
+     closeDialog(authModal);
+     swal.ok("¡Sesión iniciada!", "Listo, ya podés participar.");
    }
    $("#login-google")?.addEventListener("click", () => loginWithProvider(new GoogleAuthProvider()));
    $("#login-facebook")?.addEventListener("click", () => loginWithProvider(new FacebookAuthProvider()));
@@ -183,6 +271,7 @@
      $("#btn-manage-participants").disabled = !isAdmin;
    }
    
+   /* onAuthStateChanged */
    if (auth) {
      onAuthStateChanged(auth, async (user) => {
        if (!user){
@@ -190,6 +279,8 @@
          const admin = $("#admin"); if (admin) admin.hidden = true;
          return;
        }
+       try { await ensureUserDoc(user); } catch (e) { /* ya mostramos alerta en login */ }
+   
        try{
          const uref = doc(db, "users", user.uid);
          const usnap = await getDoc(uref);
@@ -203,7 +294,7 @@
    }
    
    /* ==========================
-      LISTADO DE GANADORES (últimos 10)
+      GANADORES (últimos 10)
       ========================== */
    async function cargarGanadores(){
      try{
@@ -271,7 +362,7 @@
        return swal.info("Iniciá sesión", "Debés iniciar sesión para participar.");
      }
      const nombre = $("#nombre").value.trim();
-     const telefono = $("#telefono").value.trim();
+     const telefono = normalizePhone($("#telefono").value.trim());
      const numeroRaw = $("#numero").value.trim();
      if (!nombre || !telefono) return swal.warn("Datos incompletos","Completá nombre y teléfono.");
      if (!inRange(numeroRaw)) return swal.warn("Número inválido","Debe estar entre 000 y 999.");
@@ -290,10 +381,16 @@
        if (nsnap.exists()){
          return swal.warn("Número ocupado", `El número ${numero} ya está elegido. Probá con otro.`);
        }
-       // Guardar
-       const payload = { uid: user.uid, number: numero, nombre, telefono, ts: serverTimestamp(), extraByAdmin: false };
+   
+       // Guardar número y participante
+       const payload = { uid: user.uid, number: numero, nombre, telefono, email: user.email || "", ts: serverTimestamp(), extraByAdmin: false };
        await setDoc(nref, payload);
-       await setDoc(pref, { uid: user.uid, primaryNumber: numero, nombre, telefono, ts: serverTimestamp() });
+       await setDoc(pref, { uid: user.uid, primaryNumber: numero, nombre, telefono, email: user.email || "", ts: serverTimestamp() });
+   
+       // Actualizar USERS con nombre y teléfono del formulario
+       await setDoc(doc(db,"users", user.uid), {
+         nombre, telefono, displayName: nombre, updatedFromFormAt: serverTimestamp()
+       }, { merge: true });
    
        setText(msg, `¡Listo! Quedaste inscripto con el número ${numero}.`, true);
        swal.ok("¡Inscripción exitosa!", `Participás con el número ${numero}. ¡Suerte! 🎉`);
@@ -430,14 +527,26 @@
    });
    
    /* ==========================
-      PREMIOS (admin guarda / público renderiza)
+      PREMIOS (admin guarda / elimina) + público renderiza
       ========================== */
    async function cargarPremioForm(idx){
      try{
-       const pref = doc(db, "premios", String(idx));
-       const psnap = await getDoc(pref);
+       // Añadimos botón Eliminar si no existe
        const cont = document.querySelector(`.premio-form[data-idx="${idx}"]`);
        if (!cont) return;
+       if (!cont.querySelector("[data-delete]")){
+         const del = document.createElement("button");
+         del.type = "button";
+         del.className = "btn tiny danger";
+         del.setAttribute("data-delete","");
+         del.textContent = `Eliminar premio #${idx}`;
+         del.addEventListener("click", ()=> eliminarPremio(idx));
+         cont.appendChild(del);
+       }
+   
+       // Cargamos valores si existe
+       const pref = doc(db, "premios", String(idx));
+       const psnap = await getDoc(pref);
        const t = cont.querySelector(".p-titulo");
        const i = cont.querySelector(".p-img");
        const d = cont.querySelector(".p-desc");
@@ -446,9 +555,12 @@
          t.value = data.titulo || "";
          i.value = data.img || "";
          d.value = data.desc || "";
+       } else {
+         t.value = ""; i.value = ""; d.value = "";
        }
      }catch(e){ console.error(e); }
    }
+   
    async function guardarPremio(idx){
      const role = $("#chip-role")?.textContent?.toLowerCase?.();
      if (role !== "admin") return swal.err("Acceso denegado","Solo administradores.");
@@ -461,6 +573,39 @@
      swal.ok("Premio guardado", `Se actualizó el premio #${idx}.`);
      await renderPremiosPublico();
    }
+   
+   async function eliminarPremio(idx){
+     const role = $("#chip-role")?.textContent?.toLowerCase?.();
+     if (role !== "admin") return swal.err("Acceso denegado","Solo administradores.");
+   
+     const res = await Swal.fire({
+       icon:'warning',
+       title:`Eliminar premio #${idx}`,
+       text:'Esta acción quitará el premio del listado público.',
+       showCancelButton:true,
+       confirmButtonText:'Eliminar',
+       confirmButtonColor:'#c62828'
+     });
+     if (!res.isConfirmed) return;
+   
+     try{
+       await deleteDoc(doc(db,"premios", String(idx)));
+       // Limpiar formulario visible
+       const cont = document.querySelector(`.premio-form[data-idx="${idx}"]`);
+       if (cont){
+         cont.querySelector(".p-titulo").value = "";
+         cont.querySelector(".p-img").value = "";
+         cont.querySelector(".p-desc").value = "";
+       }
+       $("#admin-msg").textContent = `Premio #${idx} eliminado.`;
+       swal.ok("Eliminado", `Se eliminó el premio #${idx}.`);
+       await renderPremiosPublico();
+     }catch(e){
+       console.error(e);
+       swal.err("No se pudo eliminar", e?.code || "Ver consola");
+     }
+   }
+   
    document.querySelectorAll(".premio-form [data-save]")?.forEach(btn=>{
      btn.addEventListener("click", async (e)=>{
        const idx = Number(e.currentTarget.closest(".premio-form").dataset.idx);
@@ -501,6 +646,7 @@
        renderParticipantsList(rows);
      }catch(e){ console.error(e); }
    }
+   
    function renderParticipantsList(rows){
      const list = $("#participants-list");
      if (!list) return;
@@ -536,6 +682,7 @@
        };
      }
    }
+   
    async function assignExtra(row){
      try{
        const uid = row.dataset.uid;
@@ -575,6 +722,7 @@
        swal.ok("Doble chance asignada", `Número extra ${number} guardado.`);
      }catch(e){ console.error(e); swal.err("Error","No se pudo asignar el número extra."); }
    }
+   
    async function removeExtra(row){
      try{
        const uid = row.dataset.uid;
@@ -592,4 +740,30 @@
        swal.ok("Doble chance removida", `Se quitó el número extra ${p.extraNumber}.`);
      }catch(e){ console.error(e); swal.err("Error","No se pudo quitar el número extra."); }
    }
+   
+   /* ==========================
+      Fallback JS para animación del borde neón (--angle)
+      ========================== */
+   (function neonBorderFallback(){
+     const supportsRegister = ('CSS' in window && 'registerProperty' in CSS);
+     // Si no soporta @property, animamos a mano la custom property
+     if (supportsRegister) return;
+   
+     const els = document.querySelectorAll('.howto-card.neon-animated, .form-card.neon-animated');
+     if (!els.length) return;
+   
+     els.forEach((el) => {
+       // velocidad desde CSS (--speed), en segundos
+       const speedStr = getComputedStyle(el).getPropertyValue('--speed').trim();
+       const speed = parseFloat(speedStr) || 8; // s
+       let angle = 0;
+       let last = performance.now();
+       (function tick(now){
+         const dt = (now - last)/1000; last = now;
+         angle = (angle + 360*dt/speed) % 360;
+         el.style.setProperty('--angle', angle + 'deg');
+         requestAnimationFrame(tick);
+       })(last);
+     });
+   })();
    

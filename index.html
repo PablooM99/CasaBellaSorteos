@@ -1,287 +1,328 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Bot de sorteos CasaBella: registrate con tu cuenta, elegí tu número (000–999) y participá. Mirá los últimos ganadores y los premios vigentes." />
-  <title>Sorteo CasaBella</title>
-
-  <!-- Favicon (evita 404 si tu servidor lo busca) -->
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+  <title>CasaBella — Sorteos</title>
+  <meta name="description" content="Bot de sorteos semanales/mensuales de CasaBella. Registrate, elegí tu número (000–999) y participá." />
+  <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups">
   <link rel="icon" href="assets/logo.png" />
-
-  <!-- Estilos -->
   <link rel="stylesheet" href="styles.css" />
-
-  <!-- SweetAlert2 -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-  <!-- Precarga opcional de Firebase ESM (no rompe si no hay config) -->
-  <script type="module">
-    import 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-  </script>
 </head>
 <body>
-  <header class="site-header">
-    <nav class="nav">
-      <div class="brand">
-        <button class="hamburger" id="nav-toggle" aria-label="Abrir menú" aria-controls="primary-nav" aria-expanded="false">
-          <span></span><span></span><span></span>
-        </button>
-        <img src="assets/logo.png" alt="CasaBella" class="brand-logo" />
-        <span class="brand-text">CasaBella | Hogar &amp; Obra</span>
-      </div>
+  <!-- NAV -->
+  <nav class="nav" role="navigation" aria-label="Principal">
+    <div class="wrap container">
+      <a href="#inicio" class="brand">
+        <img src="assets/logo.png" alt="CasaBella" />
+        <span>CasaBella Sorteos</span>
+      </a>
 
-      <ul class="nav-links" id="primary-nav">
-        <li><a href="#participar">Participar</a></li>
-        <li><a href="#premios-publico">Premios</a></li>
-        <li><a href="#local">Nuestro Local</a></li>
-        <li><a href="#ganadores">Ganadores</a></li>
-      </ul>
+      <button id="nav-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
 
-      <!-- Auth icon / sesión -->
-      <div class="auth-area">
-        <button id="btn-open-auth" class="icon-btn" aria-label="Iniciar sesión" type="button">
-          <!-- ícono de personita -->
-          <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z"/>
-          </svg>
+      <div class="nav-links">
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#participar">Participar</a>
+        <a href="#premios">Premios</a>
+        <a href="#ganadores">Ganadores</a>
+        <a href="#local">Galería</a>
+        <!-- Botón Login (icono persona) -->
+        <button id="btn-open-auth" class="btn ghost" type="button" aria-label="Iniciar sesión">
+          👤
         </button>
-        <div id="session-chip" class="session-chip hidden">
-          <span id="chip-name"></span>
-          <span id="chip-role" class="badge"></span>
-          <button id="btn-logout" class="btn tiny danger" type="button">Salir</button>
+        <!-- Chip de sesión -->
+        <div id="session-chip" class="session-chip hidden" title="Sesión">
+          <span id="chip-name">Usuario</span>
+          <span class="badge"><span id="chip-role">USER</span></span>
+          <button id="btn-logout" class="btn tiny ghost" type="button">Salir</button>
         </div>
       </div>
-    </nav>
-  </header>
+    </div>
+  </nav>
 
-  <!-- Modal de autenticación -->
-  <dialog id="auth-modal">
-    <form method="dialog" class="modal" role="document">
-      <button class="modal-close" aria-label="Cerrar" id="auth-close" type="button">×</button>
-      <h3>Iniciá sesión</h3>
-      <p class="muted center">Para participar necesitamos validar tu cuenta.</p>
-      <div class="social-buttons">
-        <button type="button" id="login-google" class="btn social google">Continuar con Google</button>
-        <button type="button" id="login-facebook" class="btn social facebook">Continuar con Facebook</button>
+  <main id="inicio" class="container">
+    <!-- HERO opcional -->
+    <section class="hero" aria-label="Presentación">
+      <div class="hero-card">
+        <h1 style="margin-top:0">¡Participá del sorteo!</h1>
+        <p class="lead">Elegí un número de <b>000</b> a <b>999</b>. Sorteos semanales o mensuales. Entre <b>1</b> y <b>3</b> ganadores.</p>
+        <p class="muted">Aseguramos transparencia: números únicos, historial de ganadores y premios visibles.</p>
       </div>
-      <p class="muted xs center">Al continuar aceptás los Términos y la Política de Privacidad.</p>
-    </form>
-  </dialog>
-  <!-- Fallback backdrop para navegadores sin <dialog> -->
-  <div id="dialog-backdrop" class="dialog-backdrop" aria-hidden="true"></div>
-
-  <!-- Modal admin: gestión de participantes (doble chance) -->
-  <dialog id="participants-modal">
-    <form method="dialog" class="modal" role="document">
-      <button class="modal-close" aria-label="Cerrar" id="participants-close" type="button">×</button>
-      <h3>Gestionar participantes</h3>
-      <p class="muted xs">Asigná o quitá un número extra (doble chance). Máx: 1 número extra por persona.</p>
-      <input id="search-participants" class="search" type="search" placeholder="Buscar por nombre o teléfono..." />
-      <div id="participants-list" class="participants-list">
-        <!-- render dinámico -->
+      <div class="hero-card">
+        <ul class="lead" style="margin:0">
+          <li>Iniciá sesión con Google</li>
+          <li>Completá tu nombre, teléfono y número</li>
+          <li>Esperá el sorteo ¡y mucha suerte! 🍀</li>
+        </ul>
       </div>
-    </form>
-  </dialog>
-
-  <main>
-    <!-- HERO -->
-    <section class="hero">
-      <h1>Sorteo Ferretería CasaBella</h1>
-      <p>Elegí <strong>un número</strong> entre 000 y 999, participá del sorteo semanal/mensual, y mirá los <a href="#ganadores">últimos ganadores</a>.</p>
     </section>
 
-    <section class="card howto-card">
-      <div>
-        <h2>¿Cómo participar?</h2>
-        <ol class="steps-list">
-          <li>Iniciá sesión con tu cuenta de Google o Facebook.</li>
-          <li>Elegí un número entre 000 y 999 (no puede estar repetido).</li>
-          <li>Completá el formulario con tu nombre y teléfono (WhatsApp).</li>
-          <li>Esperá el sorteo semanal/mensual y cruzá los dedos.</li>
+    <!-- CÓMO FUNCIONA -->
+    <section id="como-funciona" aria-label="Cómo funciona">
+      <div class="howto-card neon-animated">
+        <h2>¿Cómo funciona?</h2>
+        <ol style="margin:0 0 8px 18px">
+          <li>Iniciá sesión desde el icono <b>👤</b> en el menú.</li>
+          <li>Completá el formulario y elegí un número del <b>000</b> al <b>999</b>.</li>
+          <li>Solo podés participar <b>una vez por sorteo</b>.</li>
+          <li>El admin sortea desde el panel (1 a 3 ganadores) y se publican abajo.</li>
         </ol>
+        <p class="small helper">Si tu número ya está elegido, te avisamos con un mensaje y podrás intentar con otro.</p>
       </div>
     </section>
 
     <!-- FORMULARIO -->
-    <section id="participar" class="card form-card">
-      <h2>Participar del sorteo</h2>
-      <form id="form-participar" novalidate>
-        <div class="form-grid">
-          <label>
-            Nombre y apellido
-            <input type="text" id="nombre" name="nombre" placeholder="Pablo Montenegro" required maxlength="80" />
-          </label>
+    <section id="participar" aria-label="Formulario de participación">
+      <div class="form-card neon-animated">
+        <h2>Participar</h2>
+        <form id="form-participar" autocomplete="on">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <label for="nombre">Nombre y apellido</label>
+              <input id="nombre" class="input" type="text" placeholder="Tu nombre" required />
+            </div>
+            <div>
+              <label for="telefono">Teléfono</label>
+              <input id="telefono" class="input" type="tel" placeholder="+54..." required />
+            </div>
+          </div>
 
-          <label>
-            Teléfono (WhatsApp)
-            <input type="tel" id="telefono" name="telefono" placeholder="+54 223 000 0000" required maxlength="30" />
-          </label>
+          <div style="display:grid;grid-template-columns:1fr .5fr;gap:12px;margin-top:12px">
+            <div>
+              <label for="numero">Número (000–999)</label>
+              <input id="numero" class="input" type="text" inputmode="numeric" pattern="[0-9]*" value="000" maxlength="3" />
+              <p class="helper small">El campo se autocompleta a 3 dígitos (001, 015, 543, etc.).</p>
+            </div>
+            <div style="display:flex;align-items:end;">
+              <button class="btn" type="submit" style="width:100%">Enviar</button>
+            </div>
+          </div>
 
-          <label class="full">
-            Número elegido (000–999)
-            <input type="number" id="numero" name="numero" min="0" max="999" required value="000" />
-          </label>
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" class="btn primary">Registrar</button>
-          <p class="muted">El número no puede estar repetido con otro participante. Un registro por usuario y por sorteo.</p>
-        </div>
-
-        <div id="msg" role="status" aria-live="polite"></div>
-      </form>
+          <p id="msg" aria-live="polite"></p>
+        </form>
+      </div>
     </section>
 
-    <!-- PREMIOS (público) -->
-    <section id="premios-publico" class="card prizes-card">
-      <h2>Premios vigentes</h2>
-      <div id="premios-grid" class="prizes-grid"></div>
+    <!-- PREMIOS -->
+    <section id="premios" aria-label="Premios">
+      <h2>Premios</h2>
+      <div id="premios-grid"></div>
+    </section>
+
+    <!-- GANADORES -->
+    <section id="ganadores" aria-label="Ganadores">
+      <h2>Últimos ganadores</h2>
+      <ul id="lista-ganadores"></ul>
     </section>
 
     <!-- GALERÍA -->
-<section id="local" class="gallery">
-  <h2>Nuestro local</h2>
-  <div class="media-grid">
-    <div class="media-item">
-      <img
-        src="assets/LogoEmpresa.png"
-        alt="Frente del local"
-        loading="lazy"
-        onerror="this.src='assets/logo.png'"
-      />
-    </div>
-
-    <div class="media-item">
-      <img
-        src="assets/imagenpredeterminada.jpg"
-        alt="Interior del local"
-        loading="lazy"
-        onerror="this.src='assets/logo.png'"
-      />
-    </div>
-
-    <div class="media-item">
-      <video
-        controls
-        preload="metadata"
-        poster="assets/logo.png"
-      >
-        <source src="assets/recorrido.mp4" type="video/mp4" />
-        Tu navegador no soporta video HTML5.
-      </video>
-    </div>
-  </div>
-</section>
-
-    <!-- GANADORES -->
-    <section id="ganadores" class="card winners-card">
-      <h2>Últimos ganadores</h2>
-      <ul id="lista-ganadores" class="winners-list"></ul>
-    </section>
-
-    <!-- PANEL ADMIN (solo admin) -->
-    <section class="card admin-card" id="admin" hidden>
-      <h2>Panel (Admin)</h2>
-
-      <div class="admin-grid">
-        <label>
-          Cantidad de ganadores
-          <select id="cant-ganadores">
-            <option value="1">1 ganador</option>
-            <option value="2">2 ganadores</option>
-            <option value="3" selected>3 ganadores</option>
-          </select>
-        </label>
-
-        <label class="avoid-repeat">
-          <input type="checkbox" id="avoid-repeat-uid" checked />
-          Evitar ganador repetido (por persona)
-        </label>
-
-        <label>
-          Modo de sorteo
-          <select id="modo-sorteo">
-            <option value="semanal">Semanal</option>
-            <option value="quincenal">15 días</option>
-            <option value="mensual">Mensual</option>
-          </select>
-        </label>
-
-        <button id="btn-sortear" class="btn accent" type="button">Realizar sorteo</button>
-        <button id="btn-reset" class="btn danger" type="button">Resetear sorteo</button>
-        <button id="btn-manage-participants" class="btn" type="button">Gestionar participantes</button>
-      </div>
-
-      <div class="admin-subgrid">
-        <div class="admin-col">
-          <h3>Gestión de premios (hasta 5)</h3>
-          <p class="muted xs">Usá URL de imagen por ahora. (Podemos integrar Firebase Storage cuando quieras).</p>
-          <div id="premios-admin">
-            <div class="premio-form" data-idx="1">
-              <h4>Premio #1</h4>
-              <input type="text" class="p-titulo" placeholder="Título" />
-              <input type="text" class="p-img" placeholder="URL de imagen" />
-              <textarea class="p-desc" rows="2" placeholder="Descripción"></textarea>
-              <button class="btn tiny" data-save type="button">Guardar premio #1</button>
-            </div>
-            <div class="premio-form" data-idx="2">
-              <h4>Premio #2</h4>
-              <input type="text" class="p-titulo" placeholder="Título" />
-              <input type="text" class="p-img" placeholder="URL de imagen" />
-              <textarea class="p-desc" rows="2" placeholder="Descripción"></textarea>
-              <button class="btn tiny" data-save type="button">Guardar premio #2</button>
-            </div>
-            <div class="premio-form" data-idx="3">
-              <h4>Premio #3</h4>
-              <input type="text" class="p-titulo" placeholder="Título" />
-              <input type="text" class="p-img" placeholder="URL de imagen" />
-              <textarea class="p-desc" rows="2" placeholder="Descripción"></textarea>
-              <button class="btn tiny" data-save type="button">Guardar premio #3</button>
-            </div>
-            <div class="premio-form" data-idx="4">
-              <h4>Premio #4</h4>
-              <input type="text" class="p-titulo" placeholder="Título" />
-              <input type="text" class="p-img" placeholder="URL de imagen" />
-              <textarea class="p-desc" rows="2" placeholder="Descripción"></textarea>
-              <button class="btn tiny" data-save type="button">Guardar premio #4</button>
-            </div>
-            <div class="premio-form" data-idx="5">
-              <h4>Premio #5</h4>
-              <input type="text" class="p-titulo" placeholder="Título" />
-              <input type="text" class="p-img" placeholder="URL de imagen" />
-              <textarea class="p-desc" rows="2" placeholder="Descripción"></textarea>
-              <button class="btn tiny" data-save type="button">Guardar premio #5</button>
-            </div>
-          </div>
-          <div id="admin-msg" class="admin-msg"></div>
+    <section id="local" class="gallery" aria-label="Galería del local">
+      <h2>Nuestro local</h2>
+      <div class="media-grid">
+        <div class="media-item">
+          <img
+            src="assets/LogoEmpresa.png"
+            alt="Frente del local"
+            loading="lazy"
+            onerror="this.src='assets/logo.png'"
+          />
         </div>
 
-        <div class="admin-col">
-          <h3>Ganadores del sorteo actual</h3>
-          <ol id="ganadores-actual" class="ganadores-actual"></ol>
+        <div class="media-item">
+          <img
+            src="assets/imagenpredeterminada.jpg"
+            alt="Interior del local"
+            loading="lazy"
+            onerror="this.src='assets/logo.png'"
+          />
+        </div>
+
+        <div class="media-item">
+          <video controls preload="metadata" poster="assets/logo.png">
+            <source src="assets/recorrido.mp4" type="video/mp4" />
+            Tu navegador no soporta video HTML5.
+          </video>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN -->
+    <section id="admin" aria-label="Panel de administrador" hidden>
+      <h2>Panel admin</h2>
+      <div class="admin-grid">
+        <!-- SORTEO -->
+        <div class="admin-card">
+          <h3>Sorteo</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <label for="cant-ganadores">Cantidad de ganadores</label>
+              <select id="cant-ganadores" class="select">
+                <option value="1">1 ganador</option>
+                <option value="2">2 ganadores</option>
+                <option value="3" selected>3 ganadores</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:end;">
+              <label style="display:flex;gap:8px;align-items:center">
+                <input id="avoid-repeat-uid" type="checkbox" checked />
+                Evitar dos premios al mismo usuario
+              </label>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+            <button id="btn-sortear" class="btn" type="button">Realizar sorteo</button>
+            <button id="btn-reset" class="btn danger" type="button">Resetear sorteo</button>
+            <button id="btn-manage-participants" class="btn ghost" type="button">Gestionar participantes</button>
+          </div>
+
+          <p id="admin-msg" class="muted" style="margin:10px 0 6px">—</p>
+          <ol id="ganadores-actual" class="lead" style="margin:0;padding-left:20px"></ol>
+        </div>
+
+        <!-- PREMIOS (forms) -->
+        <div class="admin-card">
+          <h3>Administrar premios (máx. 5)</h3>
+          <div class="premios-forms">
+            <!-- data-idx = 1..5 -->
+            <div class="premio-form" data-idx="1">
+              <label>Título</label>
+              <input class="input p-titulo" type="text" placeholder="Nombre del premio" />
+              <div class="row">
+                <div>
+                  <label>Imagen (URL)</label>
+                  <input class="input p-img" type="url" placeholder="https://..." />
+                </div>
+                <div>
+                  <label>Descripción</label>
+                  <input class="input p-desc" type="text" placeholder="Detalles del premio" />
+                </div>
+              </div>
+              <button class="btn tiny" data-save type="button">Guardar #1</button>
+            </div>
+
+            <div class="premio-form" data-idx="2">
+              <label>Título</label>
+              <input class="input p-titulo" type="text" placeholder="Nombre del premio" />
+              <div class="row">
+                <div>
+                  <label>Imagen (URL)</label>
+                  <input class="input p-img" type="url" placeholder="https://..." />
+                </div>
+                <div>
+                  <label>Descripción</label>
+                  <input class="input p-desc" type="text" placeholder="Detalles del premio" />
+                </div>
+              </div>
+              <button class="btn tiny" data-save type="button">Guardar #2</button>
+            </div>
+
+            <div class="premio-form" data-idx="3">
+              <label>Título</label>
+              <input class="input p-titulo" type="text" placeholder="Nombre del premio" />
+              <div class="row">
+                <div>
+                  <label>Imagen (URL)</label>
+                  <input class="input p-img" type="url" placeholder="https://..." />
+                </div>
+                <div>
+                  <label>Descripción</label>
+                  <input class="input p-desc" type="text" placeholder="Detalles del premio" />
+                </div>
+              </div>
+              <button class="btn tiny" data-save type="button">Guardar #3</button>
+            </div>
+
+            <div class="premio-form" data-idx="4">
+              <label>Título</label>
+              <input class="input p-titulo" type="text" placeholder="Nombre del premio" />
+              <div class="row">
+                <div>
+                  <label>Imagen (URL)</label>
+                  <input class="input p-img" type="url" placeholder="https://..." />
+                </div>
+                <div>
+                  <label>Descripción</label>
+                  <input class="input p-desc" type="text" placeholder="Detalles del premio" />
+                </div>
+              </div>
+              <button class="btn tiny" data-save type="button">Guardar #4</button>
+            </div>
+
+            <div class="premio-form" data-idx="5">
+              <label>Título</label>
+              <input class="input p-titulo" type="text" placeholder="Nombre del premio" />
+              <div class="row">
+                <div>
+                  <label>Imagen (URL)</label>
+                  <input class="input p-img" type="url" placeholder="https://..." />
+                </div>
+                <div>
+                  <label>Descripción</label>
+                  <input class="input p-desc" type="text" placeholder="Detalles del premio" />
+                </div>
+              </div>
+              <button class="btn tiny" data-save type="button">Guardar #5</button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div>
-      <p>© <span id="year"></span> CasaBella — El mejor precio en 1º marcas.</p>
-    </div>
-    <div class="socials">
-      <a href="https://www.facebook.com/ferreteriacasabella" target="_blank" rel="noopener">Facebook</a>
-      <a href="https://www.instagram.com/ferreteriacasabella" target="_blank" rel="noopener">Instagram</a>
+  <!-- FOOTER -->
+  <footer role="contentinfo">
+    <div class="container" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div>© <span id="year"></span> CasaBella. Todos los derechos reservados.</div>
+      <div class="social">
+        <a href="#" aria-label="Instagram">Instagram</a>
+        <a href="#" aria-label="Facebook">Facebook</a>
+        <a href="#" aria-label="TikTok">TikTok</a>
+      </div>
     </div>
   </footer>
 
-  <!-- Botón flotante WhatsApp -->
-  <a id="whatsapp-fab" class="fab" href="#" target="_blank" rel="noopener"
-     data-whatsapp="+5492233540898" aria-label="Chatear por WhatsApp">WhatsApp</a>
+  <!-- FAB WhatsApp (reemplazá data-whatsapp por tu número) -->
+  <a id="whatsapp-fab" href="#" target="_blank" rel="noopener" data-whatsapp="+54 9 11 1234-5678" aria-label="WhatsApp">✆</a>
 
-  <!-- Lógica -->
+  <!-- MODAL: Autenticación -->
+  <dialog id="auth-modal" aria-labelledby="auth-title">
+    <div class="dialog-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <h3 id="auth-title" style="margin:0">Iniciar sesión</h3>
+        <button id="auth-close" class="btn tiny ghost" type="button" aria-label="Cerrar">✕</button>
+      </div>
+      <p class="muted">Elegí un método para continuar</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button id="login-google" class="btn" type="button">Continuar con Google</button>
+        <button id="login-facebook" class="btn ghost" type="button">Continuar con Facebook</button>
+      </div>
+      <p class="small helper" style="margin-top:12px">Al continuar aceptás los Términos y la Política de privacidad.</p>
+    </div>
+  </dialog>
+
+  <!-- MODAL: Participantes (admin) -->
+  <dialog id="participants-modal" aria-labelledby="participants-title">
+    <div class="dialog-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <h3 id="participants-title" style="margin:0">Gestionar participantes</h3>
+        <button id="participants-close" class="btn tiny ghost" type="button" aria-label="Cerrar">✕</button>
+      </div>
+      <input id="search-participants" class="input" type="search" placeholder="Buscar por nombre o teléfono" />
+      <div id="participants-list" style="margin-top:12px">—</div>
+    </div>
+  </dialog>
+
+  <!-- Fallback backdrop para navegadores sin <dialog> -->
+  <div id="dialog-backdrop" hidden></div>
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- App -->
   <script type="module" src="main.js"></script>
 </body>
 </html>
