@@ -6,17 +6,19 @@
    *::after { box-sizing: border-box; }
    
    :root{
-     --primary: #C62828;         /* rojo CasaBella */
+     --primary: #c65a28;         /* rojo CasaBella */
      --primary-600: #B71C1C;
      --secondary: #FF6F00;       /* naranja */
      --secondary-700:#E65100;
      --bg: #ffffff;
      --bg-soft:#f7f7f8;
-     --text: #1f2937;
+     --text: #000000;
      --muted: #6b7280;
      --border:#e5e7eb;
+     --nav: #2d18ec;
      --shadow: 0 14px 30px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.06);
      --radius: 16px;
+     --text-size:2rem;
    }
    
    html, body{ height:100%; }
@@ -24,7 +26,7 @@
      margin:0;
      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
      color:var(--text);
-     background:var(--bg);
+     background:var(--primary);
      line-height:1.5;
    }
    
@@ -40,7 +42,7 @@
       ========================== */
    .nav{
      position: sticky; top:0; z-index:1000;
-     background:#fff;
+     background:var(--nav);
      border-bottom:1px solid var(--border);
      box-shadow: 0 1px 0 rgba(0,0,0,.02);
    }
