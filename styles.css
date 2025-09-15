@@ -6,19 +6,22 @@
    *::after { box-sizing: border-box; }
    
    :root{
-     --primary: #c65a28;         /* rojo CasaBella */
-     --primary-600: #B71C1C;
-     --secondary: #FF6F00;       /* naranja */
-     --secondary-700:#E65100;
-     --bg: #ffffff;
-     --bg-soft:#f7f7f8;
-     --text: #000000;
+     /* Paleta nueva (según mockups) */
+     --nav-bg: #0d1e36;         /* azul oscuro/grisáceo */
+     --nav-bg-2:#132a48;
+     --nav-text: #eaf2ff;
+     --primary: #ff6f00;        /* naranja botón */
+     --primary-700: #e65100;
+     --danger: #c62828;
+     --bg-grad-a: #5f0f11;      /* fondo rojo oscuro */
+     --bg-grad-b: #210707;
+   
+     --text: #1f2937;
      --muted: #6b7280;
      --border:#e5e7eb;
-     --nav: #2d18ec;
-     --shadow: 0 14px 30px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.06);
      --radius: 16px;
-     --text-size:2rem;
+     --shadow: 0 14px 30px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.06);
+     --mobile-bar-h: 66px;
    }
    
    html, body{ height:100%; }
@@ -26,60 +29,67 @@
      margin:0;
      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
      color:var(--text);
-     background:var(--primary);
-     line-height:1.5;
+     background:
+       radial-gradient(1600px 400px at 50% -200px, #a42a27 0%, transparent 60%),
+       linear-gradient(180deg, var(--bg-grad-a), var(--bg-grad-b));
    }
    
    /* Helpers */
    .container{ width:min(1100px, 100%); margin-inline:auto; padding-inline:20px; }
    .center{ text-align:center; }
-   .muted{ color:var(--muted); }
-   .xs{ font-size:.8rem; }
    .hidden{ display:none !important; }
+   .mt12{ margin-top:12px; }
+   .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+   .align-end{ display:flex; align-items:flex-end; }
+   .lead{ color:var(--muted); margin:0; }
+   .helper{ color:var(--muted); }
    
    /* ==========================
-      NAVBAR + HAMBURGUESA
+      NAV oscuro + hamburguesa
       ========================== */
    .nav{
      position: sticky; top:0; z-index:1000;
-     background:var(--nav);
-     border-bottom:1px solid var(--border);
-     box-shadow: 0 1px 0 rgba(0,0,0,.02);
+     background: linear-gradient(180deg, var(--nav-bg), var(--nav-bg-2));
+     border-bottom: 1px solid rgba(255,255,255,.06);
+     box-shadow: 0 10px 20px rgba(0,0,0,.18);
    }
    .nav .wrap{
      display:flex; align-items:center; justify-content:space-between;
-     gap:16px; padding:12px 20px;
+     gap:12px; padding:12px 20px;
    }
-   .brand{ display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); font-weight:700; }
-   .brand img{ height:32px; width:auto; display:block; }
-   
-   .nav-links{
-     display:flex; align-items:center; gap:18px;
-   }
+   .brand{ display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--nav-text); font-weight:800; }
+   .brand img{ height:28px; width:auto; display:block; }
+   .nav-links{ display:flex; align-items:center; gap:14px; }
    .nav-links a{
-     text-decoration:none; color:var(--text); font-weight:600;
-     padding:8px 10px; border-radius:10px;
+     color:var(--nav-text); text-decoration:none; font-weight:700;
+     padding:8px 12px; border-radius:999px; background: rgba(255,255,255,0.06);
+     border:1px solid rgba(255,255,255,.08);
    }
-   .nav-links a:hover{ background:var(--bg-soft); }
-   
-   #nav-toggle{
-     appearance:none; border:0; background:transparent;
-     font-size:28px; line-height:1; cursor:pointer; display:none;
-   }
-   
+   .nav-links a:hover{ background: rgba(255,255,255,0.12); }
    .session-chip{
      display:flex; align-items:center; gap:8px;
-     padding:6px 10px; border:1px solid var(--border);
-     border-radius:999px; background:#fff;
+     padding:6px 10px; border-radius:999px; background: rgba(255,255,255,.08);
+     color:var(--nav-text); border:1px solid rgba(255,255,255,.15);
    }
+   .btn.ghost{ color:var(--nav-text); background:transparent; border:1px solid rgba(255,255,255,.25); }
    
-   /* Mobile menu */
+   /* Hamburguesa */
+   .hamby{
+     display:none; position:relative; width:38px; height:32px; border-radius:10px;
+     border:1px solid rgba(255,255,255,.25); background:transparent; cursor:pointer;
+   }
+   .hamby span{
+     position:absolute; left:7px; right:7px; height:2px; background:#fff; border-radius:2px;
+   }
+   .hamby span:nth-child(1){ top:9px; }
+   .hamby span:nth-child(2){ top:15px; }
+   .hamby span:nth-child(3){ top:21px; }
    @media (max-width: 900px){
-     #nav-toggle{ display:block; }
+     .hamby{ display:block; }
      .nav-links{
        position: fixed; inset:64px 0 auto 0;
-       background:#fff;
-       border-top:1px solid var(--border);
+       background: linear-gradient(180deg, var(--nav-bg), #0a172a);
+       border-top:1px solid rgba(255,255,255,.08);
        box-shadow: var(--shadow);
        padding:16px 20px;
        flex-direction:column; align-items:flex-start; gap:12px;
@@ -89,266 +99,145 @@
    }
    
    /* ==========================
-      TITLES & SECTIONS
+      HERO con logo
       ========================== */
-   section{ padding:28px 0; }
-   section h2{
-     margin:0 0 14px;
-     font-size: clamp(1.4rem, 1.1rem + 1vw, 2rem);
-     font-weight:800;
+   .brand-hero{
+     display:grid; place-items:center;
+     padding: 26px 0 10px;
    }
-   .lead{ color:var(--muted); margin:0 0 20px; }
+   .brand-hero__logo{
+     width:min(220px, 60vw); height:auto; display:block;
+     filter: drop-shadow(0 10px 22px rgba(0,0,0,.25));
+   }
    
    /* ==========================
       BOTONES / INPUTS
       ========================== */
    .btn{
      appearance:none; border:0; cursor:pointer;
-     background:linear-gradient(180deg, var(--secondary), var(--secondary-700));
+     background:linear-gradient(180deg, var(--primary), var(--primary-700));
      color:#fff; border-radius:12px;
-     padding:10px 16px; font-weight:700; box-shadow: var(--shadow);
+     padding:12px 16px; font-weight:800; box-shadow: var(--shadow);
    }
    .btn:hover{ filter:brightness(.98); transform: translateY(-1px); }
    .btn:active{ transform: translateY(0); }
-   .btn.ghost{
-     background:#fff; color:var(--secondary);
-     border:1px solid var(--secondary);
-   }
    .btn.danger{ background:linear-gradient(180deg, #e53935, #c62828); }
    .btn.tiny{ padding:6px 10px; font-size:.85rem; border-radius:10px; }
    
-   .input, .select, .textarea{
+   .input, .select{
      width:100%; border:1px solid var(--border); background:#fff;
-     border-radius:12px; padding:12px 12px; outline:none;
-     font:inherit;
+     border-radius:12px; padding:12px 12px; outline:none; font:inherit;
    }
-   .input:focus, .select:focus, .textarea:focus{ border-color: var(--secondary); box-shadow: 0 0 0 3px rgba(255,111,0,.15); }
-   
-/* Registrar la custom property para que la animación funcione en todos los Chromium */
-@supports (background: conic-gradient(red, blue)) {
-  @property --angle {
-    syntax: "<angle>";
-    inherits: true;           /* importante para que lo lean los ::before/::after */
-    initial-value: 0deg;
-  }
-}
-
-/* ================= Borde neón 360° (interior blanco) ================= */
-.howto-card, .form-card{
-  /* ajustes */
-  --ring: 4px;                /* grosor del borde */
-  --radius: 18px;             /* radio */
-  --speed: 8s;                /* velocidad (si está animado) */
-  --c1:#C62828;               /* rojo CasaBella */
-  --c2:#FF6F00;               /* naranja */
-  --c3:#FFD54F;               /* ámbar */
-  --angle: 0deg;              /* ángulo inicial del gradiente */
-
-  position: relative;
-  padding: 20px;
-  border-radius: var(--radius);
-  background: transparent;    /* el blanco lo pone ::after */
-  box-shadow: 0 2px 8px rgba(0,0,0,.06);
-  isolation: isolate;
-  will-change: --angle;       /* performance */
-}
-
-/* anillo de color: recorre TODO el contorno */
-.howto-card::before,
-.form-card::before{
-  content:"";
-  position:absolute; inset:0;
-  border-radius: inherit;
-  padding: var(--ring);
-  background: conic-gradient(from var(--angle),
-              var(--c1), var(--c2) 50%, var(--c3), var(--c1));
-  /* máscara: deja visible sólo el borde, centro transparente */
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor; mask-composite: exclude;
-  pointer-events:none;
-}
-
-/* interior blanco real (por encima del anillo) */
-.howto-card::after,
-.form-card::after{
-  content:"";
-  position:absolute;
-  inset: var(--ring);
-  border-radius: calc(var(--radius) - var(--ring));
-  background: #fff;
-  z-index: 1;
-  box-shadow:
-    0 10px 22px rgba(0,0,0,.06),
-    0 0 0 1px rgba(0,0,0,.02);
-}
-
-/* el contenido siempre arriba del fondo blanco */
-.howto-card > *, .form-card > *{ position: relative; z-index: 2; }
-
-/* Activa la animación SOLO si agregás .neon-animated al contenedor */
-.howto-card.neon-animated,
-.form-card.neon-animated{
-  animation: neon-spin var(--speed) linear infinite;
-}
-
-/* En vez de rotar la caja, animamos el ÁNGULO del gradiente */
-@keyframes neon-spin{
-  to { --angle: 360deg; }
-}
-
-/* Respeto a reduce-motion */
-@media (prefers-reduced-motion: reduce){
-  .howto-card.neon-animated, .form-card.neon-animated{ animation: none; }
-}
-
-  
-   
-   /* ==========================
-      CAPTCHA/HELPERS
-      ========================== */
-   .small{ font-size:.9rem; }
-   .helper{ color:var(--muted); font-size:.9rem; }
-   
-   /* ==========================
-      GANADORES
-      ========================== */
-   #lista-ganadores{ list-style:none; padding:0; margin:0; display:grid; gap:10px; }
-   #lista-ganadores li{
-     display:flex; align-items:center; justify-content:space-between;
-     border:1px solid var(--border); border-radius:12px; padding:10px 12px; background:#fff;
-   }
-   .winner-badge{
-     display:inline-flex; align-items:center; justify-content:center;
-     min-width:42px; height:28px; padding:0 8px;
-     background:linear-gradient(180deg, var(--primary), var(--primary-600));
-     color:#fff; border-radius:999px; font-weight:800;
+   .input:focus, .select:focus{
+     border-color: var(--primary); box-shadow: 0 0 0 3px rgba(255,111,0,.18);
    }
    
    /* ==========================
-      PREMIOS (público)
+      CARD borde neón (versión estable/animable)
       ========================== */
-   #premios-grid{
-     display:grid;
-     grid-template-columns: repeat(3, 1fr);
-     gap:16px;
+   @property --angle { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
+   
+   .howto-card, .form-card{
+     --ring: 4px; --radius: 18px; --speed: 10s;
+     --c1:#C62828; --c2:#FF6F00; --c3:#FFD54F;
+     position: relative; padding: 20px; border-radius: var(--radius);
+     background: transparent; box-shadow: 0 10px 22px rgba(0,0,0,.12);
+     --angle: 0deg;
    }
+   .howto-card::before, .form-card::before{
+     content:""; position:absolute; inset:0; border-radius: inherit; padding: var(--ring);
+     background: conic-gradient(from var(--angle), var(--c1), var(--c2) 50%, var(--c3), var(--c1));
+     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+     -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none;
+   }
+   .howto-card::after, .form-card::after{
+     content:""; position:absolute; inset: var(--ring);
+     border-radius: calc(var(--radius) - var(--ring));
+     background:#fff; z-index:1; box-shadow: 0 0 0 1px rgba(0,0,0,.02);
+   }
+   .howto-card > *, .form-card > *{ position: relative; z-index:2; }
+   .howto-card.neon-animated, .form-card.neon-animated{ animation: neon-spin var(--speed) linear infinite; }
+   @keyframes neon-spin{ to{ --angle:360deg; } }
+   
+   /* “Cómo participar” con iconitos inline */
+   .howto-list{ margin:0 0 8px 18px; }
+   .inline-chip.person{
+     font-size:.95rem; padding:0 8px; line-height:1.6; border-radius:999px; border:1px solid #ddd; background:#fff;
+   }
+   .inline-hamby{ display:inline-grid; grid-auto-rows:2px; gap:3px; padding:6px 6px; background:#0e1c31; border-radius:6px; border:1px solid rgba(255,255,255,.35); vertical-align:middle; margin:0 4px; }
+   .inline-hamby i{ display:block; width:14px; background:#fff; height:2px; border-radius:2px; }
+   
+   /* ==========================
+      PREMIOS & GANADORES (se mantienen)
+      ========================== */
+   #premios-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; }
    @media (max-width:900px){ #premios-grid{ grid-template-columns: repeat(2, 1fr); } }
    @media (max-width:560px){ #premios-grid{ grid-template-columns: 1fr; } }
-   
-   .prize{
-     background:#fff; border:1px solid var(--border); border-radius:16px;
-     box-shadow: var(--shadow); overflow:hidden;
-   }
-   .prize img{
-     width:100%; height:220px; display:block;
-     object-fit: contain;                /* Se adapta sin recortarse */
-     background:#f4f6f8;                 /* “lienzo” si sobran bordes */
-   }
-   @media (max-width:560px){ .prize img{ height:200px; } }
+   .prize{ background:#fff; border:1px solid var(--border); border-radius:16px; box-shadow: var(--shadow); overflow:hidden; }
+   .prize img{ width:100%; height:220px; object-fit:contain; display:block; background:#f5f6f8; }
    .prize .p-body{ padding:12px 14px; }
    .prize .p-title{ margin:0 0 6px; font-size:1.05rem; }
    .prize .p-desc{ margin:0; color:var(--muted); }
    
-   /* ==========================
-      GALERÍA (imágenes + video con aspecto fijo)
-      ========================== */
-   .gallery{max-width:1100px;margin:36px auto;padding:0 20px}
-   .gallery h2{margin:0 0 12px}
-   .media-grid{
-     display:grid;
-     grid-template-columns:repeat(3,1fr);
-     gap:16px;
-   }
-   @media (max-width:980px){ .media-grid{ grid-template-columns:repeat(2,1fr); } }
-   @media (max-width:560px){ .media-grid{ grid-template-columns:1fr; } }
-   .media-item{
-     position:relative; width:100%; aspect-ratio:16/9;
-     border-radius:14px; overflow:hidden; background:#f1f1f1; box-shadow:var(--shadow);
-   }
-   .media-item > img,
-   .media-item > video{
-     position:absolute; inset:0; width:100%; height:100%;
-     object-fit:cover; display:block;
-   }
-   @media (hover:hover){ .media-item:hover{ transform:translateY(-1px); } }
+   #lista-ganadores{ list-style:none; padding:0; margin:0; display:grid; gap:10px; }
+   #lista-ganadores li{ display:flex; align-items:center; justify-content:space-between; border:1px solid var(--border); border-radius:12px; padding:10px 12px; background:#fff; }
    
    /* ==========================
-      ADMIN
+      ADMIN / MODALS (igual que antes)
       ========================== */
-   #admin[hidden]{ display:none !important; }
-   .admin-grid{
-     display:grid; grid-template-columns: 1.1fr .9fr; gap:16px;
-   }
+   .admin-grid{ display:grid; grid-template-columns: 1.1fr .9fr; gap:16px; }
    @media (max-width: 900px){ .admin-grid{ grid-template-columns:1fr; } }
-   
-   .admin-card{
-     background:#fff; border:1px solid var(--border); border-radius:16px;
-     box-shadow: var(--shadow); padding:16px;
-   }
-   .admin-card h3{ margin:4px 0 12px; }
-   
-   .premios-forms{
-     display:grid; grid-template-columns: repeat(2, 1fr); gap:12px;
-   }
+   .admin-card{ background:#fff; border:1px solid var(--border); border-radius:16px; box-shadow: var(--shadow); padding:16px; }
+   .premios-forms{ display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; }
    @media (max-width: 900px){ .premios-forms{ grid-template-columns:1fr; } }
-   
-   .premio-form{
-     border:1px dashed var(--border); border-radius:12px; padding:12px; background:#fff;
-     display:grid; gap:8px;
-   }
-   .premio-form label{ font-weight:700; }
+   .premio-form{ border:1px dashed var(--border); border-radius:12px; padding:12px; background:#fff; display:grid; gap:8px; }
    .premio-form .row{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
-   @media (max-width:700px){ .premio-form .row{ grid-template-columns:1fr; } }
+   .btn-row{ display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+   .check-inline{ display:flex; gap:8px; align-items:center; height:100%; }
    
-   /* ==========================
-      PARTICIPANTES (modal admin)
-      ========================== */
-   #participants-list{ display:grid; gap:10px; }
-   .participant-row{
-     display:grid; align-items:center;
-     grid-template-columns: 1.2fr .6fr .6fr .5fr .6fr;
-     gap:10px; border:1px solid var(--border); border-radius:12px; background:#fff;
-     padding:10px 12px;
-   }
-   .participant-row .row-actions{ display:flex; gap:8px; flex-wrap:wrap; }
-   .participant-row .extra-input{ width:100%; text-transform:uppercase; }
-   @media (max-width:900px){
-     .participant-row{ grid-template-columns: 1fr 1fr; }
-   }
-   
-   /* ==========================
-      DIALOG / MODALS
-      ========================== */
-   dialog{
-     border:0; border-radius:16px; padding:0; width:min(520px, 96vw);
-     box-shadow: var(--shadow); background:#fff;
-   }
+   /* Dialogs */
+   dialog{ border:0; border-radius:16px; padding:0; width:min(520px, 96vw); box-shadow: var(--shadow); background:#fff; }
    dialog .dialog-body{ padding:16px; }
-   dialog::backdrop{ background: rgba(0,0,0,.3); }
-   
-   dialog.fallback[open]{ display:block; position:fixed; inset:50% auto auto 50%;
-     transform: translate(-50%, -50%); z-index:1100;
-   }
-   #dialog-backdrop{
-     display:none; position:fixed; inset:0; z-index:1090;
-     background: rgba(0,0,0,.35);
-   }
+   .dialog-head{ display:flex; justify-content:space-between; align-items:center; gap:12px; }
+   dialog::backdrop{ background: rgba(0,0,0,.35); }
+   dialog.fallback[open]{ display:block; position:fixed; inset:50% auto auto 50%; transform: translate(-50%, -50%); z-index:1100; }
+   #dialog-backdrop{ display:none; position:fixed; inset:0; z-index:1090; background: rgba(0,0,0,.35); }
    #dialog-backdrop.show{ display:block; }
    
    /* ==========================
       FOOTER
       ========================== */
-   footer{
-     margin-top:30px; padding:22px 0; background:#111; color:#e5e5e5;
+   .site-footer{
+     color:#e5e5e5; background: #0e0e0e; margin-top:40px;
    }
-   footer a{ color:#fff; text-decoration:none; }
-   footer .social{ display:flex; gap:12px; align-items:center; }
+   .footer-inner{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 0; }
+   .text-link{ color:#fff; text-decoration:none; }
    
-   /* ==========================
-      WHATSAPP FAB
-      ========================== */
+   /* Bottom bar móvil fijo */
+   .mobile-bottombar{
+     position: fixed; left:0; right:0; bottom: env(safe-area-inset-bottom, 0);
+     height: var(--mobile-bar-h);
+     display:none; z-index:1100;
+     background: linear-gradient(180deg, #121212, #0b0b0b);
+     border-top:1px solid rgba(255,255,255,.08);
+     display:flex; align-items:center; justify-content:center; gap:20px;
+     padding-bottom: env(safe-area-inset-bottom);
+   }
+   .social-btn{
+     width:44px; height:44px; border-radius:12px; display:grid; place-items:center;
+     background:#1b1b1b; border:1px solid rgba(255,255,255,.12);
+   }
+   .social-btn svg{ width:22px; height:22px; fill:#fff; }
+   .social-btn.ig{ background: radial-gradient(circle at 30% 30%, #f58529, #dd2a7b 60%, #8134af); }
+   .social-btn.fb{ background:#1877F2; }
+   .social-btn.tw{ background:#111; }
+   @media (max-width: 640px){
+     .site-footer{ padding-bottom: calc(var(--mobile-bar-h) + 12px); }
+     .mobile-bottombar{ display:flex; }
+     #whatsapp-fab{ bottom: calc(18px + var(--mobile-bar-h)); }
+   }
+   
+   /* WhatsApp FAB */
    #whatsapp-fab{
      position:fixed; right:18px; bottom:18px; z-index:1100;
      width:56px; height:56px; border-radius:999px;
@@ -356,42 +245,7 @@
      box-shadow: 0 12px 24px rgba(37,211,102,.35);
      text-decoration:none; font-size:26px; font-weight:900;
    }
-   #whatsapp-fab:hover{ transform: translateY(-1px); }
    
-   /* ==========================
-      UTILIDADES EXTRA
-      ========================== */
-   .card{ background:#fff; border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); }
-   .badge{
-     display:inline-flex; align-items:center; gap:6px;
-     padding:6px 10px; border-radius:999px; background:#fee; color:#b71c1c; font-weight:700;
-   }
-   
-   /* ==========================
-      BANNER/HEAD HERO (opcional)
-      ========================== */
-   .hero{
-     display:grid; grid-template-columns: 1.1fr .9fr; gap:18px; align-items:center;
-     padding:18px 0 0;
-   }
-   @media (max-width:900px){ .hero{ grid-template-columns:1fr; } }
-   .hero .hero-card{
-     border-radius:18px; padding:18px; background:linear-gradient(180deg,#fff, #f9fafb);
-     border:1px solid var(--border); box-shadow:var(--shadow);
-   }
-   
-   /* ==========================
-      MENSAJES DEL FORM
-      ========================== */
-   #msg{ margin-top:10px; font-weight:700; }
-   
-   /* ==========================
-      TABLES LIGERAS (si las usás)
-      ========================== */
-   .table{
-     width:100%; border-collapse: collapse; background:#fff; border-radius:12px; overflow:hidden;
-     border:1px solid var(--border);
-   }
-   .table th, .table td{ padding:10px 12px; border-bottom:1px solid var(--border); text-align:left; }
-   .table tr:last-child td{ border-bottom:0; }
+   /* Campos pequeños */
+   .small{ font-size:.9rem; }
    
