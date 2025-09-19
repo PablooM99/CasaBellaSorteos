@@ -103,7 +103,7 @@
       ========================== */
    .brand-hero{ padding: 26px 0 10px; }
    .brand-hero__grid{
-     display:flex; align-items:center; justify-content:center; gap:18px; flex-wrap:wrap;
+     display:flex; align-items:center; justify-content:center; gap:1px; flex-wrap:wrap;
    }
    .brand-hero__logo{
      width:min(220px, 50vw); height:auto; display:block;
@@ -117,7 +117,12 @@
      text-transform: uppercase;
      line-height:1;
      filter: drop-shadow(0 10px 24px rgba(0,0,0,.45));
+     margin-left: -24px;
    }
+   @media (max-width: 900px){
+    .brand-hero__grid{ gap: 12px; margin-left: -128px; }
+    .brand-hero__title{ margin-left: 0; }
+  }
    
    /* ==========================
       “Cómo participar” — SIN CARD
