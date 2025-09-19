@@ -6,18 +6,18 @@
    *::after { box-sizing: border-box; }
    
    :root{
-     /* Paleta nueva (según mockups) */
-     --nav-bg: #0d1e36;         /* azul oscuro/grisáceo */
+     /* Paleta */
+     --nav-bg: #0d1e36;
      --nav-bg-2:#132a48;
      --nav-text: #eaf2ff;
-     --primary: #ff6f00;        /* naranja botón */
+     --primary: #ff6f00;
      --primary-700: #e65100;
      --danger: #c62828;
-     --bg-grad-a: #5f0f11;      /* fondo rojo oscuro */
+     --bg-grad-a: #5f0f11;
      --bg-grad-b: #210707;
    
      --text: #1f2937;
-     --muted: #6b7280;
+     --muted: #bfc6d4;
      --border:#e5e7eb;
      --radius: 16px;
      --shadow: 0 14px 30px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.06);
@@ -36,13 +36,13 @@
    
    /* Helpers */
    .container{ width:min(1100px, 100%); margin-inline:auto; padding-inline:20px; }
-   .center{ text-align:center; }
    .hidden{ display:none !important; }
    .mt12{ margin-top:12px; }
    .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
    .align-end{ display:flex; align-items:flex-end; }
-   .lead{ color:var(--muted); margin:0; }
-   .helper{ color:var(--muted); }
+   .lead{ color:#9aa4b3; margin:0; }
+   .helper{ color:#cdd5e1; }
+   .small{ font-size:.9rem; }
    
    /* ==========================
       NAV oscuro + hamburguesa
@@ -99,16 +99,52 @@
    }
    
    /* ==========================
-      HERO con logo
+      HERO con logo + palabra SORTEO
       ========================== */
-   .brand-hero{
-     display:grid; place-items:center;
-     padding: 26px 0 10px;
+   .brand-hero{ padding: 26px 0 10px; }
+   .brand-hero__grid{
+     display:flex; align-items:center; justify-content:center; gap:18px; flex-wrap:wrap;
    }
    .brand-hero__logo{
-     width:min(220px, 60vw); height:auto; display:block;
+     width:min(220px, 50vw); height:auto; display:block;
      filter: drop-shadow(0 10px 22px rgba(0,0,0,.25));
    }
+   .brand-hero__title{
+     font-size: clamp(40px, 8vw, 96px);
+     font-weight: 900;
+     color:#ffffff;
+     letter-spacing:.04em;
+     text-transform: uppercase;
+     line-height:1;
+     filter: drop-shadow(0 10px 24px rgba(0,0,0,.45));
+   }
+   
+   /* ==========================
+      “Cómo participar” — SIN CARD
+      ========================== */
+   .howto-plain{
+     position: relative;
+     margin-top: 8px;
+     padding: 8px 0 16px 18px; /* espacio para línea acento */
+     color:#f3f6ff;
+   }
+   .howto-plain::before{
+     content:""; position:absolute; left:0; top:0; bottom:0; width:4px; border-radius:4px;
+     background: linear-gradient(180deg, var(--primary), var(--primary-700));
+     box-shadow: 0 0 16px rgba(255,111,0,.45);
+   }
+   .howto-plain h2{ color:#fff; margin:0 0 8px; }
+   .howto-plain .howto-list{ margin:0 0 6px 18px; }
+   .howto-plain .howto-list li{ margin:6px 0; color:#f2f6ff; }
+   .howto-plain b{ color:#ffd54f; }
+   .howto-plain .muted{ color:#e5e7eb; }
+   
+   /* iconitos inline */
+   .inline-chip.person{
+     font-size:.95rem; padding:0 8px; line-height:1.6; border-radius:999px; border:1px solid #ddd; background:#fff; color:#111;
+   }
+   .inline-hamby{ display:inline-grid; grid-auto-rows:2px; gap:3px; padding:6px 6px; background:#0e1c31; border-radius:6px; border:1px solid rgba(255,255,255,.35); vertical-align:middle; margin:0 4px; }
+   .inline-hamby i{ display:block; width:14px; background:#fff; height:2px; border-radius:2px; }
    
    /* ==========================
       BOTONES / INPUTS
@@ -133,42 +169,34 @@
    }
    
    /* ==========================
-      CARD borde neón (versión estable/animable)
+      CARD con borde neón (solo para el formulario)
       ========================== */
    @property --angle { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
    
-   .howto-card, .form-card{
+   .form-card{
      --ring: 4px; --radius: 18px; --speed: 10s;
      --c1:#C62828; --c2:#FF6F00; --c3:#FFD54F;
      position: relative; padding: 20px; border-radius: var(--radius);
      background: transparent; box-shadow: 0 10px 22px rgba(0,0,0,.12);
      --angle: 0deg;
    }
-   .howto-card::before, .form-card::before{
+   .form-card::before{
      content:""; position:absolute; inset:0; border-radius: inherit; padding: var(--ring);
      background: conic-gradient(from var(--angle), var(--c1), var(--c2) 50%, var(--c3), var(--c1));
      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
      -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none;
    }
-   .howto-card::after, .form-card::after{
+   .form-card::after{
      content:""; position:absolute; inset: var(--ring);
      border-radius: calc(var(--radius) - var(--ring));
      background:#fff; z-index:1; box-shadow: 0 0 0 1px rgba(0,0,0,.02);
    }
-   .howto-card > *, .form-card > *{ position: relative; z-index:2; }
-   .howto-card.neon-animated, .form-card.neon-animated{ animation: neon-spin var(--speed) linear infinite; }
+   .form-card > *{ position: relative; z-index:2; }
+   .form-card.neon-animated{ animation: neon-spin var(--speed) linear infinite; }
    @keyframes neon-spin{ to{ --angle:360deg; } }
    
-   /* “Cómo participar” con iconitos inline */
-   .howto-list{ margin:0 0 8px 18px; }
-   .inline-chip.person{
-     font-size:.95rem; padding:0 8px; line-height:1.6; border-radius:999px; border:1px solid #ddd; background:#fff;
-   }
-   .inline-hamby{ display:inline-grid; grid-auto-rows:2px; gap:3px; padding:6px 6px; background:#0e1c31; border-radius:6px; border:1px solid rgba(255,255,255,.35); vertical-align:middle; margin:0 4px; }
-   .inline-hamby i{ display:block; width:14px; background:#fff; height:2px; border-radius:2px; }
-   
    /* ==========================
-      PREMIOS & GANADORES (se mantienen)
+      PREMIOS & GANADORES
       ========================== */
    #premios-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; }
    @media (max-width:900px){ #premios-grid{ grid-template-columns: repeat(2, 1fr); } }
@@ -177,13 +205,13 @@
    .prize img{ width:100%; height:220px; object-fit:contain; display:block; background:#f5f6f8; }
    .prize .p-body{ padding:12px 14px; }
    .prize .p-title{ margin:0 0 6px; font-size:1.05rem; }
-   .prize .p-desc{ margin:0; color:var(--muted); }
+   .prize .p-desc{ margin:0; color:#6b7280; }
    
    #lista-ganadores{ list-style:none; padding:0; margin:0; display:grid; gap:10px; }
    #lista-ganadores li{ display:flex; align-items:center; justify-content:space-between; border:1px solid var(--border); border-radius:12px; padding:10px 12px; background:#fff; }
    
    /* ==========================
-      ADMIN / MODALS (igual que antes)
+      ADMIN / MODALS
       ========================== */
    .admin-grid{ display:grid; grid-template-columns: 1.1fr .9fr; gap:16px; }
    @media (max-width: 900px){ .admin-grid{ grid-template-columns:1fr; } }
@@ -245,7 +273,4 @@
      box-shadow: 0 12px 24px rgba(37,211,102,.35);
      text-decoration:none; font-size:26px; font-weight:900;
    }
-   
-   /* Campos pequeños */
-   .small{ font-size:.9rem; }
    
