@@ -120,7 +120,7 @@
      margin-left: -24px;
    }
    @media (max-width: 900px){
-    .brand-hero__grid{ gap: 12px; margin-left: -128px; }
+    .brand-hero__grid{ gap: 12px; margin-left: -64px; }
     .brand-hero__title{ margin-left: 0; }
   }
    
