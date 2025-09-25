@@ -26,9 +26,7 @@
         <a href="#ganadores">Ganadores</a>
         <a href="#premios">Premios</a>
         <a href="#participar">Participar</a>
-        <!-- Botón Login (icono persona) -->
         <button id="btn-open-auth" class="btn ghost" type="button" aria-label="Iniciar sesión">👤</button>
-        <!-- Chip de sesión -->
         <div id="session-chip" class="session-chip hidden" title="Sesión">
           <span id="chip-name">Usuario</span>
           <span class="badge"><span id="chip-role">USER</span></span>
@@ -39,7 +37,6 @@
   </nav>
 
   <main id="top">
-    <!-- HERO con logo + título SORTEO -->
     <section class="brand-hero container" aria-label="Marca">
       <div class="brand-hero__grid">
         <img src="assets/logo.png" alt="CasaBella" class="brand-hero__logo" />
@@ -47,7 +44,6 @@
       </div>
     </section>
 
-    <!-- CÓMO PARTICIPAR (texto sobre fondo, sin card) -->
     <section id="como-participar" class="container" aria-label="Cómo participar">
       <div class="howto-plain">
         <h2>¿Cómo participar?</h2>
@@ -67,7 +63,6 @@
       </div>
     </section>
 
-    <!-- FORMULARIO -->
     <section id="participar" class="container" aria-label="Formulario de participación">
       <div class="form-card neon-animated">
         <h2>Participar</h2>
@@ -99,23 +94,19 @@
       </div>
     </section>
 
-    <!-- PREMIOS -->
     <section id="premios" class="container" aria-label="Premios">
       <h2>Premios</h2>
       <div id="premios-grid"></div>
     </section>
 
-    <!-- GANADORES -->
     <section id="ganadores" class="container" aria-label="Ganadores">
       <h2>Últimos ganadores</h2>
       <ul id="lista-ganadores"></ul>
     </section>
 
-    <!-- ADMIN -->
     <section id="admin" class="container" aria-label="Panel de administrador" hidden>
       <h2>Panel admin</h2>
       <div class="admin-grid">
-        <!-- SORTEO -->
         <div class="admin-card">
           <h3>Sorteo</h3>
           <div class="grid2">
@@ -145,7 +136,6 @@
           <ol id="ganadores-actual" class="lead"></ol>
         </div>
 
-        <!-- PREMIOS (forms) -->
         <div class="admin-card">
           <h3>Administrar premios (máx. 5)</h3>
           <div class="premios-forms">
@@ -234,7 +224,6 @@
     </section>
   </main>
 
-  <!-- FOOTER (desktop) -->
   <footer class="site-footer">
     <div class="container footer-inner">
       <div>© <span id="year"></span> CasaBella. Todos los derechos reservados.</div>
@@ -246,7 +235,6 @@
     </div>
   </footer>
 
-  <!-- Bottom bar móvil -->
   <div class="mobile-bottombar" role="navigation" aria-label="Redes sociales">
     <a class="social-btn ig" href="HTTPS://instagram.com/casabellahogaryobra/" target="_blank" rel="noopener" aria-label="Instagram">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6zM18 6.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"></path></svg>
@@ -259,10 +247,8 @@
     </a>
   </div>
 
-  <!-- FAB WhatsApp -->
   <a id="whatsapp-fab" href="#" target="_blank" rel="noopener" data-whatsapp="+54 9 2233540898" aria-label="WhatsApp">✆</a>
 
-  <!-- MODAL: Autenticación (solo Google) -->
   <dialog id="auth-modal" aria-labelledby="auth-title">
     <div class="dialog-body">
       <div class="dialog-head">
@@ -277,7 +263,6 @@
     </div>
   </dialog>
 
-  <!-- MODAL: Participantes (admin) -->
   <dialog id="participants-modal" aria-labelledby="participants-title">
     <div class="dialog-body">
       <div class="dialog-head">
@@ -289,13 +274,10 @@
     </div>
   </dialog>
 
-  <!-- Fallback backdrop -->
   <div id="dialog-backdrop" hidden></div>
 
-  <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-  <!-- App -->
   <script type="module" src="main.js"></script>
+  
 </body>
 </html>

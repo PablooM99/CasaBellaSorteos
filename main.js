@@ -1,6 +1,4 @@
-/* ==========================
-   UTILIDADES DE UI
-   ========================== */
+/* UTILIDADES DE UI */
 const $ = (sel) => document.querySelector(sel);
 
 /* Hamburguesa */
@@ -47,9 +45,7 @@ $("#year").textContent = new Date().getFullYear();
   if (fab) fab.href = `https://wa.me/${numero.replace(/\D/g,'')}`;
 })();
 
-/* ==========================
-   INPUT NÚMERO (000–999)
-   ========================== */
+/* INPUT NÚMERO (000–999) */
 const pad3 = (n) => String(Math.max(0, Math.min(999, Number(n)||0))).padStart(3,"0");
 const inRange = (n) => Number.isFinite(Number(n)) && Number(n) >= 0 && Number(n) <= 999;
 const numeroInput = $("#numero");
@@ -87,9 +83,7 @@ if (numeroInput){
 }
 const normalizePhone = (v) => (v||"").replace(/[^\d+]/g,"").trim();
 
-/* ==========================
-   FIREBASE
-   ========================== */
+/* FIREBASE */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut,
@@ -100,7 +94,7 @@ import {
   collection, getDocs, query, orderBy, limit, deleteDoc, updateDoc, deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* ⚠️ Reemplazá por tu config real */
+/* Datos de firebase */
 const firebaseConfig = {
   apiKey: "AIzaSyC8qgoPDOQ7eFPZpQWkGZjjTFQbNyrdPDo",
   authDomain: "casabellasorteos.firebaseapp.com",
@@ -133,7 +127,7 @@ try{
   swal.err("Error de configuración", "Revisá tu configuración de Firebase y dominios autorizados.");
 }
 
-/* USERS: bootstrap/actualización */
+/* USERS: */
 async function ensureUserDoc(u){
   if (!u || !db) return;
   const uref = doc(db, "users", u.uid);
@@ -150,7 +144,7 @@ async function ensureUserDoc(u){
   }
 }
 
-/* AUTENTICACIÓN (solo Google) */
+/* AUTENTICACIÓN */
 async function loginWithGoogle() {
   if (!auth) return swal.err("Sin conexión", "Firebase no está inicializado.");
   if (location.protocol === "file:") {
@@ -201,6 +195,7 @@ function setAdminUI(isAdmin, email="", role=""){
 }
 
 /* onAuthStateChanged */
+
 if (auth) {
   onAuthStateChanged(auth, async (user) => {
     if (!user){ $("#session-chip")?.classList.add("hidden"); const admin = $("#admin"); if (admin) admin.hidden = true; return; }
@@ -217,9 +212,7 @@ if (auth) {
   });
 }
 
-/* ==========================
-   GANADORES (últimos 10)
-   ========================== */
+/* GANADORES (últimos 10) */
 async function cargarGanadores(){
   try{
     const ul = $("#lista-ganadores");
@@ -239,9 +232,7 @@ async function cargarGanadores(){
 }
 cargarGanadores();
 
-/* ==========================
-   PREMIOS (público)
-   ========================== */
+/* PREMIOS (público) */
 async function renderPremiosPublico(){
   try{
     const wrap = $("#premios-grid");
@@ -268,9 +259,7 @@ async function renderPremiosPublico(){
 }
 renderPremiosPublico();
 
-/* ==========================
-   FORMULARIO: registro
-   ========================== */
+/* FORMULARIO: registro */
 $("#form-participar")?.addEventListener("submit", async (e) => {
   e.preventDefault();
   const msg = $("#msg"); if (msg) msg.textContent = "";
@@ -319,9 +308,7 @@ $("#form-participar")?.addEventListener("submit", async (e) => {
   }
 });
 
-/* ==========================
-   ADMIN: sorteo / reset / premios
-   ========================== */
+/* ADMIN: sorteo / reset / premios */
 async function guardarGanador(part, posicion){
   const fecha = new Date();
   const fechaISO = fecha.toISOString();
@@ -527,9 +514,7 @@ async function removeExtra(row){
   }catch(e){ console.error(e); swal.err("Error","No se pudo quitar el número extra."); }
 }
 
-/* ==========================
-   Fallback JS animación neón (--angle)
-   ========================== */
+/* Fallback JS animación neón */
 (function neonBorderFallback(){
   const supportsRegister = ('CSS' in window && 'registerProperty' in CSS);
   if (supportsRegister) return;
